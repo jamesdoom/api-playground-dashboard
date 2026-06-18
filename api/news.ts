@@ -1,7 +1,7 @@
-import { parseNewsCategory } from "../shared/contracts/news.ts";
-import { DASHBOARD_CACHE_CONTROL } from "../shared/http/cache.ts";
+import { parseNewsCategory } from "../shared/runtime/contracts/news.js";
+import { DASHBOARD_CACHE_CONTROL } from "../shared/runtime/http/cache.js";
 import type { ApiRequest, ApiResponse } from "../shared/http/serverless.ts";
-import { getLatestNews, getNewsApiError } from "../shared/services/newsService.ts";
+import { getLatestNews, getNewsApiError } from "../shared/runtime/services/newsService.js";
 
 type NewsQuery = {
   category?: string | string[];
