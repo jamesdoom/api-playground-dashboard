@@ -1,3 +1,4 @@
+import type { CryptoResponse } from "../types/crypto";
 import type { NewsCategory, NewsResponse } from "../types/news";
 import type { WeatherData } from "../types/weather";
 
@@ -44,4 +45,14 @@ export async function fetchLatestNews(category: NewsCategory, signal?: AbortSign
   }
 
   return response.json() as Promise<NewsResponse>;
+}
+
+export async function fetchCryptoPrices(signal?: AbortSignal): Promise<CryptoResponse> {
+  const response = await fetch(`${API_BASE_URL}/crypto`, { signal });
+
+  if (!response.ok) {
+    throw new Error(await getErrorMessage(response));
+  }
+
+  return response.json() as Promise<CryptoResponse>;
 }

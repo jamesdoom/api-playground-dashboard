@@ -1,9 +1,24 @@
 import { describe, expect, it } from "vitest";
 import { parseNewsCategory } from "../../../shared/contracts/news.ts";
+import { mapCoinGeckoResponse } from "../../../shared/services/cryptoService.ts";
 import { mapGuardianResponse } from "../../../shared/services/newsService.ts";
 import { mapOpenWeatherResponse } from "../../../shared/services/weatherService.ts";
 
 describe("shared provider transformations", () => {
+  it("maps CoinGecko prices into the dashboard contract", () => {
+    const assets = mapCoinGeckoResponse({
+      bitcoin: { usd: 67500, usd_24h_change: 2.5 },
+      ethereum: { usd: 3500, usd_24h_change: -1.25 },
+      solana: { usd: 145, usd_24h_change: 0.5 },
+    });
+
+    expect(assets).toEqual([
+      { id: "bitcoin", name: "Bitcoin", symbol: "BTC", priceUsd: 67500, change24h: 2.5 },
+      { id: "ethereum", name: "Ethereum", symbol: "ETH", priceUsd: 3500, change24h: -1.25 },
+      { id: "solana", name: "Solana", symbol: "SOL", priceUsd: 145, change24h: 0.5 },
+    ]);
+  });
+
   it("maps OpenWeather data into the dashboard contract", () => {
     const weather = mapOpenWeatherResponse({
       name: "Chicago",

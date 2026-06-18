@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import cryptoHandler from "../../../api/crypto.ts";
 import newsHandler from "../../../api/news.ts";
 import weatherHandler from "../../../api/weather.ts";
 import type { ApiResponse } from "../../../shared/http/serverless.ts";
@@ -37,11 +38,13 @@ describe("Vercel API handlers", () => {
   beforeEach(() => {
     process.env.OPENWEATHER_API_KEY = "weather-key";
     process.env.GUARDIAN_API_KEY = "news-key";
+    process.env.COINGECKO_API_KEY = "crypto-key";
   });
 
   afterEach(() => {
     delete process.env.OPENWEATHER_API_KEY;
     delete process.env.GUARDIAN_API_KEY;
+    delete process.env.COINGECKO_API_KEY;
   });
 
   it("rejects a weather request without a city", async () => {
@@ -115,5 +118,34 @@ describe("Vercel API handlers", () => {
       articles: [expect.objectContaining({ title: "Example headline", thumbnail: null })],
     });
     expect(result.headers.get("Cache-Control")).toContain("stale-while-revalidate=600");
+  });
+
+  it("returns mapped crypto prices with the CDN cache policy", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            bitcoin: { usd: 67500, usd_24h_change: 2.5 },
+            ethereum: { usd: 3500, usd_24h_change: -1.25 },
+            solana: { usd: 145, usd_24h_change: 0.5 },
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        ),
+      ),
+    );
+    const result = createApiResponse();
+
+    await cryptoHandler({ method: "GET", query: {} }, result.response);
+
+    expect(result.statusCode).toBe(200);
+    expect(result.body).toEqual({
+      assets: [
+        expect.objectContaining({ id: "bitcoin", symbol: "BTC", priceUsd: 67500 }),
+        expect.objectContaining({ id: "ethereum", symbol: "ETH", priceUsd: 3500 }),
+        expect.objectContaining({ id: "solana", symbol: "SOL", priceUsd: 145 }),
+      ],
+    });
+    expect(result.headers.get("Cache-Control")).toContain("s-maxage=300");
   });
 });

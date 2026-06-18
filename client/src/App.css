@@ -306,6 +306,103 @@
   font-weight: 750;
 }
 
+.crypto-currency {
+  padding: 6px 10px;
+  color: #0f766e;
+  background: #edf8f6;
+  border: 1px solid #b9ded9;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+}
+
+.crypto-list {
+  display: grid;
+  gap: 0;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  border-top: 1px solid #e5e7eb;
+}
+
+.crypto-row {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 72px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.crypto-symbol,
+.crypto-symbol-skeleton {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+}
+
+.crypto-symbol {
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  background: #334155;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.crypto-symbol-bitcoin {
+  background: #b45309;
+}
+
+.crypto-symbol-ethereum {
+  background: #4f46e5;
+}
+
+.crypto-symbol-solana {
+  background: #0f766e;
+}
+
+.crypto-name,
+.crypto-value {
+  display: grid;
+  gap: 2px;
+}
+
+.crypto-name strong,
+.crypto-value strong {
+  color: #172033;
+  font-size: 0.92rem;
+}
+
+.crypto-name span,
+.crypto-change {
+  color: #64748b;
+  font-size: 0.74rem;
+}
+
+.crypto-value {
+  justify-items: end;
+  text-align: right;
+}
+
+.crypto-change-positive {
+  color: #047857;
+}
+
+.crypto-change-negative {
+  color: #b42318;
+}
+
+.crypto-value-skeleton {
+  width: 90px;
+  justify-items: end;
+}
+
+.crypto-skeleton {
+  min-height: 216px;
+}
+
 .news-widget {
   grid-column: 1 / -1;
   min-height: 480px;

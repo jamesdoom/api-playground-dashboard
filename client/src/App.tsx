@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import CryptoWidget from "./components/CryptoWidget";
 import NewsWidget from "./components/NewsWidget";
 import WeatherWidget from "./components/WeatherWidget";
 import { checkServerHealth } from "./services/api";
@@ -25,6 +26,7 @@ function App() {
 
       <section className="dashboard-grid" aria-label="API widgets">
         <WeatherWidget />
+        <CryptoWidget />
         <NewsWidget />
       </section>
     </main>

@@ -1,6 +1,7 @@
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
+import cryptoRoutes from "./routes/cryptoRoutes.js";
 import newsRoutes from "./routes/newsRoutes.js";
 import weatherRoutes from "./routes/weatherRoutes.js";
 
@@ -17,6 +18,7 @@ app.get("/api/health", (_req, res) => {
 });
 
 app.use("/api/weather", weatherRoutes);
+app.use("/api/crypto", cryptoRoutes);
 app.use("/api/news", newsRoutes);
 
 app.listen(PORT, () => {
