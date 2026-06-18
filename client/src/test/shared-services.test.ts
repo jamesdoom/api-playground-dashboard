@@ -1,10 +1,23 @@
 import { describe, expect, it } from "vitest";
 import { parseNewsCategory } from "../../../shared/contracts/news.ts";
+import { TRACKED_STOCKS } from "../../../shared/contracts/stocks.ts";
 import { mapCoinGeckoResponse } from "../../../shared/services/cryptoService.ts";
 import { mapGuardianResponse } from "../../../shared/services/newsService.ts";
+import { mapFinnhubQuote } from "../../../shared/services/stocksService.ts";
 import { mapOpenWeatherResponse } from "../../../shared/services/weatherService.ts";
 
 describe("shared provider transformations", () => {
+  it("maps Finnhub data into the stock quote contract", () => {
+    const quote = mapFinnhubQuote(TRACKED_STOCKS[0], { c: 205.5, dp: 1.25 });
+
+    expect(quote).toEqual({
+      symbol: "AAPL",
+      name: "Apple",
+      priceUsd: 205.5,
+      changePercent: 1.25,
+    });
+  });
+
   it("maps CoinGecko prices into the dashboard contract", () => {
     const assets = mapCoinGeckoResponse({
       bitcoin: { usd: 67500, usd_24h_change: 2.5 },

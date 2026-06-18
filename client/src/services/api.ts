@@ -1,5 +1,6 @@
 import type { CryptoResponse } from "../types/crypto";
 import type { NewsCategory, NewsResponse } from "../types/news";
+import type { StocksResponse } from "../types/stocks";
 import type { WeatherData } from "../types/weather";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
@@ -55,4 +56,14 @@ export async function fetchCryptoPrices(signal?: AbortSignal): Promise<CryptoRes
   }
 
   return response.json() as Promise<CryptoResponse>;
+}
+
+export async function fetchStockQuotes(signal?: AbortSignal): Promise<StocksResponse> {
+  const response = await fetch(`${API_BASE_URL}/stocks`, { signal });
+
+  if (!response.ok) {
+    throw new Error(await getErrorMessage(response));
+  }
+
+  return response.json() as Promise<StocksResponse>;
 }

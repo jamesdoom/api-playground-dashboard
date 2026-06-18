@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import cryptoHandler from "../../../api/crypto.ts";
 import newsHandler from "../../../api/news.ts";
+import stocksHandler from "../../../api/stocks.ts";
 import weatherHandler from "../../../api/weather.ts";
 import type { ApiResponse } from "../../../shared/http/serverless.ts";
 
@@ -39,12 +40,14 @@ describe("Vercel API handlers", () => {
     process.env.OPENWEATHER_API_KEY = "weather-key";
     process.env.GUARDIAN_API_KEY = "news-key";
     process.env.COINGECKO_API_KEY = "crypto-key";
+    process.env.FINNHUB_API_KEY = "stocks-key";
   });
 
   afterEach(() => {
     delete process.env.OPENWEATHER_API_KEY;
     delete process.env.GUARDIAN_API_KEY;
     delete process.env.COINGECKO_API_KEY;
+    delete process.env.FINNHUB_API_KEY;
   });
 
   it("rejects a weather request without a city", async () => {
@@ -144,6 +147,43 @@ describe("Vercel API handlers", () => {
         expect.objectContaining({ id: "bitcoin", symbol: "BTC", priceUsd: 67500 }),
         expect.objectContaining({ id: "ethereum", symbol: "ETH", priceUsd: 3500 }),
         expect.objectContaining({ id: "solana", symbol: "SOL", priceUsd: 145 }),
+      ],
+    });
+    expect(result.headers.get("Cache-Control")).toContain("s-maxage=300");
+  });
+
+  it("returns mapped stock quotes with the CDN cache policy", async () => {
+    const fetchMock = vi.fn();
+    fetchMock
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ c: 205.5, dp: 1.25 }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ c: 450.25, dp: -0.75 }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ c: 150, dp: 0.5 }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      );
+    vi.stubGlobal("fetch", fetchMock);
+    const result = createApiResponse();
+
+    await stocksHandler({ method: "GET", query: {} }, result.response);
+
+    expect(result.statusCode).toBe(200);
+    expect(result.body).toEqual({
+      quotes: [
+        expect.objectContaining({ symbol: "AAPL", priceUsd: 205.5, changePercent: 1.25 }),
+        expect.objectContaining({ symbol: "MSFT", priceUsd: 450.25, changePercent: -0.75 }),
+        expect.objectContaining({ symbol: "NVDA", priceUsd: 150, changePercent: 0.5 }),
       ],
     });
     expect(result.headers.get("Cache-Control")).toContain("s-maxage=300");

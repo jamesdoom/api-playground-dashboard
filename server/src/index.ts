@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import express from "express";
 import cryptoRoutes from "./routes/cryptoRoutes.js";
 import newsRoutes from "./routes/newsRoutes.js";
+import stocksRoutes from "./routes/stocksRoutes.js";
 import weatherRoutes from "./routes/weatherRoutes.js";
 
 dotenv.config();
@@ -19,6 +20,7 @@ app.get("/api/health", (_req, res) => {
 
 app.use("/api/weather", weatherRoutes);
 app.use("/api/crypto", cryptoRoutes);
+app.use("/api/stocks", stocksRoutes);
 app.use("/api/news", newsRoutes);
 
 app.listen(PORT, () => {

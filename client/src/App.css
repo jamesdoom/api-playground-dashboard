@@ -306,7 +306,8 @@
   font-weight: 750;
 }
 
-.crypto-currency {
+.crypto-currency,
+.market-currency {
   padding: 6px 10px;
   color: #0f766e;
   background: #edf8f6;
@@ -401,6 +402,86 @@
 
 .crypto-skeleton {
   min-height: 216px;
+}
+
+.stocks-list {
+  display: grid;
+  gap: 0;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  border-top: 1px solid #e5e7eb;
+}
+
+.stock-row {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 72px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.stock-symbol,
+.stock-symbol-skeleton {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+}
+
+.stock-symbol {
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  background: #334155;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.stock-name,
+.stock-value {
+  display: grid;
+  gap: 2px;
+}
+
+.stock-name strong,
+.stock-value strong {
+  color: #172033;
+  font-size: 0.92rem;
+}
+
+.stock-name span,
+.stock-change {
+  color: #64748b;
+  font-size: 0.74rem;
+}
+
+.stock-value {
+  justify-items: end;
+  text-align: right;
+}
+
+.stock-change-positive {
+  color: #047857;
+}
+
+.stock-change-negative {
+  color: #b42318;
+}
+
+.stock-value-skeleton {
+  width: 90px;
+  justify-items: end;
+}
+
+.stocks-skeleton {
+  min-height: 216px;
+}
+
+.market-disclaimer {
+  margin-top: 10px;
+  color: #64748b;
+  font-size: 0.72rem;
 }
 
 .news-widget {
