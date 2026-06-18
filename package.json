@@ -7,6 +7,7 @@
     "build:shared": "npm exec --prefix client -- tsc -p shared/tsconfig.build.json",
     "lint": "npm run lint --prefix client",
     "test": "npm run build:shared && npm test --prefix client",
+    "test:e2e": "npm run test:e2e --prefix client",
     "typecheck:server": "npm exec --prefix server -- tsc -p server/tsconfig.json",
     "verify": "npm test && npm run lint && npm run build && npm run typecheck:server"
   }

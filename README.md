@@ -18,6 +18,7 @@ A responsive full-stack dashboard that brings several third-party APIs into one 
 - Five-minute CDN caching with stale-while-revalidate support
 - Shared provider services used by both Express and Vercel serverless handlers
 - Vitest, Testing Library, ESLint, production build, and server type checks in CI
+- Playwright browser tests across desktop, tablet, and mobile layouts
 
 ## Technology
 
@@ -27,7 +28,7 @@ A responsive full-stack dashboard that brings several third-party APIs into one 
 | Local API | Node.js, Express, TypeScript, tsx |
 | Production API | Vercel Functions |
 | Providers | OpenWeather, CoinGecko, Finnhub, The Guardian Open Platform |
-| Quality | Vitest, Testing Library, ESLint, GitHub Actions |
+| Quality | Vitest, Testing Library, Playwright, ESLint, GitHub Actions |
 
 ## Architecture
 
@@ -140,6 +141,15 @@ npm run verify
 
 This runs the shared TypeScript build, test suite, linting, client production build, and server type check.
 
+Run the deterministic browser suite separately after installing Chromium once:
+
+```bash
+npm exec --prefix client -- playwright install chromium
+npm run test:e2e
+```
+
+Playwright starts the Vite client, mocks provider responses inside the browser, and verifies the main flows at desktop, tablet, and mobile viewport sizes. Screenshots, video, and traces are retained when a test fails.
+
 ## Deployment
 
 The repository is configured for Vercel. The React client builds to `client/dist`, while files in `api/` become serverless endpoints. Add `OPENWEATHER_API_KEY`, `GUARDIAN_API_KEY`, `COINGECKO_API_KEY`, and `FINNHUB_API_KEY` to the Vercel project environment before deploying.
@@ -147,6 +157,5 @@ The repository is configured for Vercel. The React client builds to `client/dist
 ## Roadmap
 
 - Add historical charts and selectable market assets
-- Add end-to-end browser tests for critical user flows
 - Add more API categories such as movies, sports, and AI
 - Add drag-and-drop widget customization
