@@ -1,3 +1,4 @@
+import type { NewsCategory, NewsResponse } from "../types/news";
 import type { WeatherData } from "../types/weather";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
@@ -32,4 +33,15 @@ export async function fetchWeatherByCity(city: string): Promise<WeatherData> {
   }
 
   return response.json() as Promise<WeatherData>;
+}
+
+export async function fetchLatestNews(category: NewsCategory, signal?: AbortSignal): Promise<NewsResponse> {
+  const searchParams = new URLSearchParams({ category });
+  const response = await fetch(`${API_BASE_URL}/news?${searchParams.toString()}`, { signal });
+
+  if (!response.ok) {
+    throw new Error(await getErrorMessage(response));
+  }
+
+  return response.json() as Promise<NewsResponse>;
 }

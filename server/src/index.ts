@@ -1,6 +1,7 @@
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
+import newsRoutes from "./routes/newsRoutes.js";
 import weatherRoutes from "./routes/weatherRoutes.js";
 
 dotenv.config();
@@ -16,6 +17,7 @@ app.get("/api/health", (_req, res) => {
 });
 
 app.use("/api/weather", weatherRoutes);
+app.use("/api/news", newsRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server listening on http://localhost:${PORT}`);
