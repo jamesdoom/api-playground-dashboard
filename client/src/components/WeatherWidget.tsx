@@ -2,19 +2,75 @@ import { useState, type FormEvent } from "react";
 import { fetchWeatherByCity } from "../services/api";
 import type { WeatherData } from "../types/weather";
 
+const WEATHER_CITY_STORAGE_KEY = "dashboard-weather-city";
+const timeFormatter = new Intl.DateTimeFormat("en-US", {
+  hour: "numeric",
+  minute: "2-digit",
+});
+
 function getWeatherIconUrl(icon: string): string {
   return `https://openweathermap.org/img/wn/${icon}@2x.png`;
 }
 
+function getStoredCity(): string {
+  try {
+    return window.localStorage.getItem(WEATHER_CITY_STORAGE_KEY) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+function WeatherSkeleton() {
+  return (
+    <div className="weather-results weather-skeleton" aria-hidden="true">
+      <div className="skeleton-stack">
+        <span className="skeleton-block skeleton-line-wide" />
+        <span className="skeleton-block skeleton-line-short" />
+      </div>
+      <span className="skeleton-block skeleton-temperature" />
+      <div className="weather-stats">
+        <span className="skeleton-block skeleton-stat" />
+        <span className="skeleton-block skeleton-stat" />
+      </div>
+    </div>
+  );
+}
+
 function WeatherWidget() {
-  const [city, setCity] = useState("");
+  const [city, setCity] = useState(getStoredCity);
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function loadWeather(requestedCity: string, keepCurrentWeather = false) {
+    setIsLoading(true);
+    setErrorMessage("");
+
+    if (!keepCurrentWeather) {
+      setWeather(null);
+    }
+
+    try {
+      const weatherData = await fetchWeatherByCity(requestedCity);
+      setWeather(weatherData);
+      setCity(weatherData.city);
+      setUpdatedAt(new Date());
+
+      try {
+        window.localStorage.setItem(WEATHER_CITY_STORAGE_KEY, weatherData.city);
+      } catch {
+        // Storage may be unavailable in private browsing; weather still works without it.
+      }
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Unable to load weather data.");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
     const trimmedCity = city.trim();
 
     if (!trimmedCity) {
@@ -23,22 +79,15 @@ function WeatherWidget() {
       return;
     }
 
-    setIsLoading(true);
-    setErrorMessage("");
-
-    try {
-      const weatherData = await fetchWeatherByCity(trimmedCity);
-      setWeather(weatherData);
-    } catch (error) {
-      setWeather(null);
-      setErrorMessage(error instanceof Error ? error.message : "Unable to load weather data.");
-    } finally {
-      setIsLoading(false);
-    }
+    void loadWeather(trimmedCity);
   }
 
   return (
-    <section className="widget weather-widget" aria-labelledby="weather-widget-title">
+    <section
+      className="widget weather-widget"
+      aria-labelledby="weather-widget-title"
+      aria-busy={isLoading}
+    >
       <div className="widget-header">
         <div>
           <p className="eyebrow">OpenWeather API</p>
@@ -65,13 +114,32 @@ function WeatherWidget() {
             disabled={isLoading}
           />
           <button type="submit" disabled={isLoading}>
-            {isLoading ? "Loading..." : "Search"}
+            {isLoading && !weather ? "Loading..." : "Search"}
           </button>
         </div>
       </form>
 
-      {errorMessage ? <p className="widget-message error-message">{errorMessage}</p> : null}
-      {isLoading ? <p className="widget-message">Fetching current conditions...</p> : null}
+      {errorMessage ? (
+        <div className="error-state" role="alert">
+          <p>{errorMessage}</p>
+          {city.trim() ? (
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() => void loadWeather(city.trim())}
+            >
+              Retry
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+
+      {isLoading && !weather ? (
+        <>
+          <p className="sr-only" role="status">Fetching current conditions...</p>
+          <WeatherSkeleton />
+        </>
+      ) : null}
 
       {weather ? (
         <div className="weather-results" aria-live="polite">
@@ -94,6 +162,18 @@ function WeatherWidget() {
               <dd>{weather.humidity}%</dd>
             </div>
           </dl>
+
+          <div className="widget-footer">
+            <p>{updatedAt ? `Updated ${timeFormatter.format(updatedAt)}` : null}</p>
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() => void loadWeather(weather.city, true)}
+              disabled={isLoading}
+            >
+              {isLoading ? "Refreshing..." : "Refresh"}
+            </button>
+          </div>
         </div>
       ) : null}
     </section>

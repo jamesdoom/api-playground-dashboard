@@ -41,11 +41,14 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 20px;
+  min-width: 0;
 }
 
 .widget {
+  min-width: 0;
   min-height: 360px;
   padding: 24px;
+  box-sizing: border-box;
   background: #ffffff;
   border: 1px solid #d8dee4;
   border-radius: 8px;
@@ -125,13 +128,116 @@
   opacity: 0.7;
 }
 
-.widget-message {
-  margin-top: 12px;
-  color: #4b5563;
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
-.error-message {
-  color: #b42318;
+.error-state {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 16px 0;
+  padding: 12px 14px;
+  color: #9f1d16;
+  background: #fff6f4;
+  border-left: 3px solid #d92d20;
+}
+
+.secondary-button {
+  flex: 0 0 auto;
+  min-height: 36px;
+  padding: 0 12px;
+  color: #0f766e;
+  background: #ffffff;
+  border: 1px solid #99c5c0;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.secondary-button:hover {
+  background: #edf8f6;
+}
+
+.secondary-button:focus-visible {
+  outline: 3px solid rgba(15, 118, 110, 0.2);
+  outline-offset: 2px;
+}
+
+.secondary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.widget-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 14px;
+  color: #64748b;
+  font-size: 0.78rem;
+}
+
+.skeleton-block {
+  display: block;
+  background: #e6ebef;
+  background-image: linear-gradient(90deg, #e6ebef 0%, #f5f7f9 50%, #e6ebef 100%);
+  background-size: 200% 100%;
+  border-radius: 5px;
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+.skeleton-stack {
+  display: grid;
+  align-content: center;
+  gap: 10px;
+}
+
+.skeleton-line-short {
+  width: 42%;
+  height: 12px;
+}
+
+.skeleton-line-medium {
+  width: 68%;
+  height: 12px;
+}
+
+.skeleton-line-wide {
+  width: 88%;
+  height: 16px;
+}
+
+.skeleton-temperature {
+  width: 132px;
+  height: 48px;
+}
+
+.skeleton-stat {
+  width: 100%;
+  height: 68px;
+}
+
+@keyframes skeleton-pulse {
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -200% 0;
+  }
 }
 
 .weather-results {
@@ -184,6 +290,10 @@
   color: #111827;
   font-size: 1.2rem;
   font-weight: 700;
+}
+
+.weather-skeleton {
+  min-height: 224px;
 }
 
 .news-widget {
@@ -260,6 +370,9 @@
 }
 
 .news-thumbnail {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 132px;
   aspect-ratio: 4 / 3;
   overflow: hidden;
@@ -271,6 +384,12 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.news-thumbnail-fallback {
+  color: #557078;
+  font-size: 1.6rem;
+  font-weight: 750;
 }
 
 .news-copy {
@@ -295,6 +414,7 @@
   color: #172033;
   font-size: 1rem;
   line-height: 1.35;
+  overflow-wrap: anywhere;
   transition: color 150ms ease;
 }
 
@@ -302,6 +422,20 @@
   color: #0f766e;
   font-size: 0.78rem;
   font-weight: 700;
+}
+
+.news-skeleton-item {
+  pointer-events: none;
+}
+
+.news-skeleton-item .news-thumbnail {
+  border-radius: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-block {
+    animation: none;
+  }
 }
 
 @media (max-width: 700px) {
@@ -315,6 +449,22 @@
     flex-direction: column;
   }
 
+  .dashboard-header h1 {
+    max-width: 100%;
+    font-size: 1.75rem;
+    overflow-wrap: anywhere;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .widget {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
   .server-status {
     align-self: stretch;
   }
@@ -323,16 +473,23 @@
     width: 100%;
   }
 
+  .error-state,
+  .widget-footer {
+    align-items: flex-start;
+  }
+
   .news-header {
     align-items: stretch;
   }
 
   .news-list {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .news-item,
   .news-item:nth-child(even) {
+    width: 100%;
+    min-width: 0;
     grid-template-columns: 104px minmax(0, 1fr);
     min-height: 104px;
     padding: 16px 0;
