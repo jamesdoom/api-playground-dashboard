@@ -4,6 +4,8 @@
     "moduleResolution": "NodeNext",
     "target": "ESNext",
     "types": ["node"],
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
 
     "strict": true,
     "forceConsistentCasingInFileNames": true,

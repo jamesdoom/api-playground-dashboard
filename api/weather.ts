@@ -1,6 +1,6 @@
-import { DASHBOARD_CACHE_CONTROL } from "../shared/http/cache.js";
-import type { ApiRequest, ApiResponse } from "../shared/http/serverless.js";
-import { getWeatherApiError, getWeatherByCity } from "../shared/services/weatherService.js";
+import { DASHBOARD_CACHE_CONTROL } from "../shared/http/cache.ts";
+import type { ApiRequest, ApiResponse } from "../shared/http/serverless.ts";
+import { getWeatherApiError, getWeatherByCity } from "../shared/services/weatherService.ts";
 
 type WeatherQuery = {
   city?: string | string[];

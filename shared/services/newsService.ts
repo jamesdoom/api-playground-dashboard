@@ -1,5 +1,5 @@
-import type { GuardianApiResponse, NewsArticle, NewsCategory } from "../contracts/news.js";
-import { ProviderError, type ApiErrorDetails } from "../errors/ProviderError.js";
+import type { GuardianApiResponse, NewsArticle, NewsCategory } from "../contracts/news.ts";
+import { ProviderError, type ApiErrorDetails } from "../errors/ProviderError.ts";
 
 const GUARDIAN_BASE_URL = "https://content.guardianapis.com/search";
 

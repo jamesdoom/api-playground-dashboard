@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { DASHBOARD_CACHE_CONTROL } from "../../../shared/http/cache.js";
-import { getWeatherApiError } from "../../../shared/services/weatherService.js";
+import { DASHBOARD_CACHE_CONTROL } from "../../../shared/http/cache.ts";
+import { getWeatherApiError } from "../../../shared/services/weatherService.ts";
 import { getWeatherByCity } from "../services/weatherService.js";
 
 const router = Router();

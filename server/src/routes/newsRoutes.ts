@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { DASHBOARD_CACHE_CONTROL } from "../../../shared/http/cache.js";
-import { getNewsApiError } from "../../../shared/services/newsService.js";
+import { DASHBOARD_CACHE_CONTROL } from "../../../shared/http/cache.ts";
+import { getNewsApiError } from "../../../shared/services/newsService.ts";
 import { getLatestNews } from "../services/newsService.js";
 import { parseNewsCategory } from "../types/news.js";
 

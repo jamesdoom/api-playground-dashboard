@@ -1,5 +1,5 @@
-import type { OpenWeatherApiResponse, WeatherData } from "../contracts/weather.js";
-import { ProviderError, type ApiErrorDetails } from "../errors/ProviderError.js";
+import type { OpenWeatherApiResponse, WeatherData } from "../contracts/weather.ts";
+import { ProviderError, type ApiErrorDetails } from "../errors/ProviderError.ts";
 
 const OPENWEATHER_BASE_URL = "https://api.openweathermap.org/data/2.5/weather";
 
