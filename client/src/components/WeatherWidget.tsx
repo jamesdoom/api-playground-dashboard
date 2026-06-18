@@ -20,6 +20,31 @@ function getStoredCity(): string {
   }
 }
 
+function WeatherIcon({ icon, description }: { icon: string; description: string }) {
+  const [hasError, setHasError] = useState(false);
+
+  if (hasError) {
+    return (
+      <span
+        className="weather-icon weather-icon-fallback"
+        role="img"
+        aria-label={`${description} icon unavailable`}
+      >
+        W
+      </span>
+    );
+  }
+
+  return (
+    <img
+      className="weather-icon"
+      src={getWeatherIconUrl(icon)}
+      alt={description}
+      onError={() => setHasError(true)}
+    />
+  );
+}
+
 function WeatherSkeleton() {
   return (
     <div className="weather-results weather-skeleton" aria-hidden="true">
@@ -94,10 +119,10 @@ function WeatherWidget() {
           <h2 id="weather-widget-title">Weather</h2>
         </div>
         {weather?.icon ? (
-          <img
-            className="weather-icon"
-            src={getWeatherIconUrl(weather.icon)}
-            alt={weather.weatherDescription}
+          <WeatherIcon
+            key={weather.icon}
+            icon={weather.icon}
+            description={weather.weatherDescription}
           />
         ) : null}
       </div>

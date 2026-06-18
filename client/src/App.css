@@ -296,6 +296,16 @@
   min-height: 224px;
 }
 
+.weather-icon-fallback {
+  display: grid;
+  place-items: center;
+  color: #557078;
+  background: #e7eef0;
+  border-radius: 50%;
+  font-size: 1.35rem;
+  font-weight: 750;
+}
+
 .news-widget {
   grid-column: 1 / -1;
   min-height: 480px;

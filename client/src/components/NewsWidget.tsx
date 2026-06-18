@@ -31,6 +31,26 @@ function formatCategory(category: NewsCategory): string {
   return category === "all" ? "Top stories" : category[0].toUpperCase() + category.slice(1);
 }
 
+function NewsThumbnail({ article }: { article: NewsArticle }) {
+  const [hasError, setHasError] = useState(false);
+  const fallbackLetter = article.section.trim().slice(0, 1).toUpperCase() || "N";
+
+  return (
+    <div className="news-thumbnail" aria-hidden="true">
+      {article.thumbnail && !hasError ? (
+        <img
+          src={article.thumbnail}
+          alt=""
+          loading="lazy"
+          onError={() => setHasError(true)}
+        />
+      ) : (
+        <span className="news-thumbnail-fallback">{fallbackLetter}</span>
+      )}
+    </div>
+  );
+}
+
 function NewsSkeleton() {
   return (
     <div className="news-list news-skeleton" aria-hidden="true">
@@ -161,13 +181,7 @@ function NewsWidget() {
                 target="_blank"
                 rel="noreferrer"
               >
-                <div className="news-thumbnail" aria-hidden="true">
-                  {article.thumbnail ? (
-                    <img src={article.thumbnail} alt="" loading="lazy" />
-                  ) : (
-                    <span className="news-thumbnail-fallback">{article.section.slice(0, 1)}</span>
-                  )}
-                </div>
+                <NewsThumbnail article={article} />
 
                 <div className="news-copy">
                   <p className="news-meta">

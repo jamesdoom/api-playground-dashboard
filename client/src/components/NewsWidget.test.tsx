@@ -72,4 +72,25 @@ describe("NewsWidget", () => {
     );
     expect(screen.getByRole("button", { name: "Retry" })).toBeEnabled();
   });
+
+  it("replaces a broken article thumbnail with its section fallback", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        jsonResponse({
+          articles: [{ ...newsResponse.articles[0], thumbnail: "https://example.com/broken.jpg" }],
+        }),
+      ),
+    );
+
+    const { container } = render(<NewsWidget />);
+    await screen.findByRole("link", { name: /Example technology headline/ });
+
+    const thumbnail = container.querySelector<HTMLImageElement>(".news-thumbnail img");
+    expect(thumbnail).not.toBeNull();
+    fireEvent.error(thumbnail!);
+
+    expect(container.querySelector(".news-thumbnail-fallback")).toHaveTextContent("T");
+    expect(container.querySelector(".news-thumbnail img")).not.toBeInTheDocument();
+  });
 });

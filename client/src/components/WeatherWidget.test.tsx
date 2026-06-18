@@ -58,4 +58,30 @@ describe("WeatherWidget", () => {
     );
     expect(screen.getByRole("button", { name: "Retry" })).toBeEnabled();
   });
+
+  it("shows an accessible fallback when the weather icon fails", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        jsonResponse({
+          city: "Chicago",
+          country: "US",
+          temperature: 70,
+          feelsLike: 69,
+          humidity: 50,
+          weatherDescription: "clear sky",
+          icon: "01d",
+        }),
+      ),
+    );
+
+    render(<WeatherWidget />);
+    fireEvent.change(screen.getByLabelText("City"), { target: { value: "Chicago" } });
+    fireEvent.click(screen.getByRole("button", { name: "Search" }));
+
+    const weatherIcon = await screen.findByRole("img", { name: "clear sky" });
+    fireEvent.error(weatherIcon);
+
+    expect(screen.getByRole("img", { name: "clear sky icon unavailable" })).toBeInTheDocument();
+  });
 });
