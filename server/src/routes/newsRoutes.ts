@@ -1,38 +1,28 @@
-import axios from "axios";
 import { Router } from "express";
+import { DASHBOARD_CACHE_CONTROL } from "../../../shared/http/cache.js";
+import { getNewsApiError } from "../../../shared/services/newsService.js";
 import { getLatestNews } from "../services/newsService.js";
-import { NEWS_CATEGORIES, type NewsCategory } from "../types/news.js";
+import { parseNewsCategory } from "../types/news.js";
 
 const router = Router();
 
-function isNewsCategory(value: string): value is NewsCategory {
-  return NEWS_CATEGORIES.some((category) => category === value);
-}
-
 router.get("/", async (req, res) => {
-  const requestedCategory = String(req.query.category ?? "all").toLowerCase();
+  const queryCategory = Array.isArray(req.query.category) ? req.query.category[0] : req.query.category;
+  const category = parseNewsCategory(typeof queryCategory === "string" ? queryCategory : undefined);
 
-  if (!isNewsCategory(requestedCategory)) {
+  if (!category) {
     res.status(400).json({ message: "Please select a valid news category." });
     return;
   }
 
   try {
-    const articles = await getLatestNews(requestedCategory);
+    const articles = await getLatestNews(category);
+    res.setHeader("Cache-Control", DASHBOARD_CACHE_CONTROL);
     res.json({ articles });
   } catch (error) {
-    if (error instanceof Error && error.message === "Guardian API key is not configured.") {
-      res.status(500).json({ message: "News service is not configured yet." });
-      return;
-    }
-
-    if (axios.isAxiosError(error) && (error.response?.status === 401 || error.response?.status === 403)) {
-      res.status(500).json({ message: "News service is not configured correctly." });
-      return;
-    }
-
+    const apiError = getNewsApiError(error);
     console.error("News request failed:", error);
-    res.status(500).json({ message: "Headlines are unavailable right now. Please try again soon." });
+    res.status(apiError.statusCode).json({ message: apiError.message });
   }
 });
 

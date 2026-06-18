@@ -1,5 +1,6 @@
-import axios from "axios";
 import { Router } from "express";
+import { DASHBOARD_CACHE_CONTROL } from "../../../shared/http/cache.js";
+import { getWeatherApiError } from "../../../shared/services/weatherService.js";
 import { getWeatherByCity } from "../services/weatherService.js";
 
 const router = Router();
@@ -14,29 +15,12 @@ router.get("/", async (req, res) => {
 
   try {
     const weather = await getWeatherByCity(city);
+    res.setHeader("Cache-Control", DASHBOARD_CACHE_CONTROL);
     res.json(weather);
   } catch (error) {
-    if (error instanceof Error && error.message === "OpenWeather API key is not configured.") {
-      res.status(500).json({ message: "Weather service is not configured yet." });
-      return;
-    }
-
-    if (axios.isAxiosError(error)) {
-      const statusCode = error.response?.status;
-
-      if (statusCode === 404) {
-        res.status(404).json({ message: "We could not find weather for that city." });
-        return;
-      }
-
-      if (statusCode === 401) {
-        res.status(500).json({ message: "Weather service is not configured correctly." });
-        return;
-      }
-    }
-
+    const apiError = getWeatherApiError(error);
     console.error("Weather request failed:", error);
-    res.status(500).json({ message: "Weather data is unavailable right now. Please try again soon." });
+    res.status(apiError.statusCode).json({ message: apiError.message });
   }
 });
 

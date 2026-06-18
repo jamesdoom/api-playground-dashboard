@@ -6,6 +6,10 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
+    fs: {
+      // Shared API contracts live one level above the Vite application root.
+      allow: ['..'],
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:5000',
