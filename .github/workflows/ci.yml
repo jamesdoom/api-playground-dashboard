@@ -24,11 +24,11 @@ jobs:
 
       - name: Install client dependencies
         working-directory: client
-        run: npm ci
+        run: npm install --no-audit --no-fund
 
       - name: Install server dependencies
         working-directory: server
-        run: npm ci
+        run: npm install --no-audit --no-fund
 
       - name: Verify project
         run: npm run verify
