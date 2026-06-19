@@ -26,9 +26,13 @@ function App() {
       </header>
 
       <section className="dashboard-grid" aria-label="API widgets">
-        <WeatherWidget />
-        <CryptoWidget />
-        <StocksWidget />
+        <div className="dashboard-primary">
+          <div className="dashboard-side-stack">
+            <WeatherWidget />
+            <StocksWidget />
+          </div>
+          <CryptoWidget />
+        </div>
         <NewsWidget />
       </section>
     </main>

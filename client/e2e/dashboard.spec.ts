@@ -147,16 +147,18 @@ test("uses the expected responsive widget order", async ({ page }, testInfo) => 
 
   if (testInfo.project.name === "desktop") {
     expect(Math.abs(weather!.y - crypto!.y)).toBeLessThanOrEqual(1);
-    expect(Math.abs(weather!.y - stocks!.y)).toBeLessThanOrEqual(1);
-    expect(news!.y).toBeGreaterThan(weather!.y + weather!.height);
+    expect(stocks!.y).toBeGreaterThan(weather!.y + weather!.height);
+    expect(news!.y).toBeGreaterThan(stocks!.y + stocks!.height);
+    expect(news!.y).toBeGreaterThan(crypto!.y + crypto!.height);
   } else if (testInfo.project.name === "tablet") {
     expect(Math.abs(weather!.y - crypto!.y)).toBeLessThanOrEqual(1);
     expect(stocks!.y).toBeGreaterThan(weather!.y + weather!.height);
     expect(news!.y).toBeGreaterThan(stocks!.y + stocks!.height);
+    expect(news!.y).toBeGreaterThan(crypto!.y + crypto!.height);
   } else {
-    expect(crypto!.y).toBeGreaterThan(weather!.y + weather!.height);
-    expect(stocks!.y).toBeGreaterThan(crypto!.y + crypto!.height);
-    expect(news!.y).toBeGreaterThan(stocks!.y + stocks!.height);
+    expect(stocks!.y).toBeGreaterThan(weather!.y + weather!.height);
+    expect(crypto!.y).toBeGreaterThan(stocks!.y + stocks!.height);
+    expect(news!.y).toBeGreaterThan(crypto!.y + crypto!.height);
   }
 });
 
