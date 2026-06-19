@@ -1,14 +1,16 @@
 import {
-  TRACKED_STOCKS,
+  AVAILABLE_STOCKS,
+  DEFAULT_STOCK_SYMBOLS,
   type FinnhubQuoteResponse,
   type StockQuote,
+  type StockSymbol,
 } from "../contracts/stocks.ts";
 import { ProviderError, type ApiErrorDetails } from "../errors/ProviderError.ts";
 
 const FINNHUB_QUOTE_URL = "https://finnhub.io/api/v1/quote";
 
 export function mapFinnhubQuote(
-  stock: (typeof TRACKED_STOCKS)[number],
+  stock: (typeof AVAILABLE_STOCKS)[number],
   data: FinnhubQuoteResponse,
 ): StockQuote {
   if (typeof data.c !== "number" || data.c <= 0 || typeof data.dp !== "number") {
@@ -22,14 +24,23 @@ export function mapFinnhubQuote(
   };
 }
 
-export async function getStockQuotes(apiKey: string | undefined): Promise<StockQuote[]> {
+export async function getStockQuotes(
+  apiKey: string | undefined,
+  symbols: readonly StockSymbol[] = DEFAULT_STOCK_SYMBOLS,
+): Promise<StockQuote[]> {
   if (!apiKey) {
     throw new ProviderError("not_configured", "Finnhub API key is not configured.");
   }
 
   try {
     return await Promise.all(
-      TRACKED_STOCKS.map(async (stock) => {
+      symbols.map(async (symbol) => {
+        const stock = AVAILABLE_STOCKS.find((candidate) => candidate.symbol === symbol);
+
+        if (!stock) {
+          throw new ProviderError("unavailable", "Finnhub received an unsupported stock request.");
+        }
+
         const searchParams = new URLSearchParams({ symbol: stock.symbol });
         const response = await fetch(`${FINNHUB_QUOTE_URL}?${searchParams.toString()}`, {
           headers: {

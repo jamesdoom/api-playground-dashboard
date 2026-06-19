@@ -1,4 +1,4 @@
-import { TRACKED_STOCKS, } from "../contracts/stocks.js";
+import { AVAILABLE_STOCKS, DEFAULT_STOCK_SYMBOLS, } from "../contracts/stocks.js";
 import { ProviderError } from "../errors/ProviderError.js";
 const FINNHUB_QUOTE_URL = "https://finnhub.io/api/v1/quote";
 export function mapFinnhubQuote(stock, data) {
@@ -11,12 +11,16 @@ export function mapFinnhubQuote(stock, data) {
         changePercent: data.dp,
     };
 }
-export async function getStockQuotes(apiKey) {
+export async function getStockQuotes(apiKey, symbols = DEFAULT_STOCK_SYMBOLS) {
     if (!apiKey) {
         throw new ProviderError("not_configured", "Finnhub API key is not configured.");
     }
     try {
-        return await Promise.all(TRACKED_STOCKS.map(async (stock) => {
+        return await Promise.all(symbols.map(async (symbol) => {
+            const stock = AVAILABLE_STOCKS.find((candidate) => candidate.symbol === symbol);
+            if (!stock) {
+                throw new ProviderError("unavailable", "Finnhub received an unsupported stock request.");
+            }
             const searchParams = new URLSearchParams({ symbol: stock.symbol });
             const response = await fetch(`${FINNHUB_QUOTE_URL}?${searchParams.toString()}`, {
                 headers: {

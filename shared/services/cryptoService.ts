@@ -1,14 +1,25 @@
 import {
-  TRACKED_CRYPTOCURRENCIES,
+  AVAILABLE_CRYPTOCURRENCIES,
+  DEFAULT_CRYPTO_IDS,
   type CoinGeckoSimplePriceResponse,
   type CryptoAsset,
+  type CryptoId,
 } from "../contracts/crypto.ts";
 import { ProviderError, type ApiErrorDetails } from "../errors/ProviderError.ts";
 
 const COINGECKO_BASE_URL = "https://api.coingecko.com/api/v3/simple/price";
 
-export function mapCoinGeckoResponse(data: CoinGeckoSimplePriceResponse): CryptoAsset[] {
-  return TRACKED_CRYPTOCURRENCIES.map((crypto) => {
+export function mapCoinGeckoResponse(
+  data: CoinGeckoSimplePriceResponse,
+  ids: readonly CryptoId[] = DEFAULT_CRYPTO_IDS,
+): CryptoAsset[] {
+  return ids.map((id) => {
+    const crypto = AVAILABLE_CRYPTOCURRENCIES.find((candidate) => candidate.id === id);
+
+    if (!crypto) {
+      throw new ProviderError("unavailable", "CoinGecko received an unsupported asset request.");
+    }
+
     const marketData = data[crypto.id];
 
     if (typeof marketData?.usd !== "number" || typeof marketData.usd_24h_change !== "number") {
@@ -23,13 +34,16 @@ export function mapCoinGeckoResponse(data: CoinGeckoSimplePriceResponse): Crypto
   });
 }
 
-export async function getCryptoPrices(apiKey: string | undefined): Promise<CryptoAsset[]> {
+export async function getCryptoPrices(
+  apiKey: string | undefined,
+  ids: readonly CryptoId[] = DEFAULT_CRYPTO_IDS,
+): Promise<CryptoAsset[]> {
   if (!apiKey) {
     throw new ProviderError("not_configured", "CoinGecko API key is not configured.");
   }
 
   const searchParams = new URLSearchParams({
-    ids: TRACKED_CRYPTOCURRENCIES.map((crypto) => crypto.id).join(","),
+    ids: ids.join(","),
     vs_currencies: "usd",
     include_24hr_change: "true",
   });
@@ -51,7 +65,7 @@ export async function getCryptoPrices(apiKey: string | undefined): Promise<Crypt
     }
 
     const data = (await response.json()) as CoinGeckoSimplePriceResponse;
-    return mapCoinGeckoResponse(data);
+    return mapCoinGeckoResponse(data, ids);
   } catch (error) {
     if (error instanceof ProviderError) {
       throw error;

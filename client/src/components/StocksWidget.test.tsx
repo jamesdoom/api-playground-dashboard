@@ -1,4 +1,4 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import StocksWidget from "./StocksWidget";
 
@@ -37,6 +37,22 @@ describe("StocksWidget", () => {
     expect(screen.getByLabelText("Apple daily change +1.25%")).toBeInTheDocument();
     expect(screen.getByText("Quotes may be delayed.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Refresh" })).toBeEnabled();
+  });
+
+  it("persists removals and shows the empty watchlist state", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse(stocksResponse)));
+
+    render(<StocksWidget />);
+    await screen.findByText("Apple");
+
+    fireEvent.click(screen.getByRole("button", { name: "Remove Apple" }));
+    fireEvent.click(screen.getByRole("button", { name: "Remove Microsoft" }));
+    fireEvent.click(screen.getByRole("button", { name: "Remove Nvidia" }));
+
+    expect(await screen.findByText("Add a company to start your stock watchlist.")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(window.localStorage.getItem("dashboard-stocks-watchlist")).toBe("[]");
+    });
   });
 
   it("shows the API error and a retry action", async () => {

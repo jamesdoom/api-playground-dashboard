@@ -1,4 +1,4 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import CryptoWidget from "./CryptoWidget";
 
@@ -37,6 +37,48 @@ describe("CryptoWidget", () => {
     expect(screen.getByLabelText("Bitcoin 24-hour change +2.50%")).toBeInTheDocument();
     expect(screen.getByText(/^Updated /)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Refresh" })).toBeEnabled();
+  });
+
+  it("restores an empty watchlist and persists an added asset", async () => {
+    window.localStorage.setItem("dashboard-crypto-watchlist", "[]");
+    const fetchMock = vi.fn().mockResolvedValue(
+      jsonResponse({
+        assets: [
+          { id: "dogecoin", name: "Dogecoin", symbol: "DOGE", priceUsd: 0.15, change24h: 1.2 },
+        ],
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<CryptoWidget />);
+    expect(screen.getByText("Add an asset to start your crypto watchlist.")).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("Add crypto asset"), {
+      target: { value: "dogecoin" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Add" }));
+
+    expect(await screen.findByText("Dogecoin")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(window.localStorage.getItem("dashboard-crypto-watchlist")).toBe('["dogecoin"]');
+    });
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/crypto?ids=dogecoin",
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+  });
+
+  it("disables additions at the five-asset limit", () => {
+    window.localStorage.setItem(
+      "dashboard-crypto-watchlist",
+      '["bitcoin","ethereum","solana","dogecoin","cardano"]',
+    );
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse(cryptoResponse)));
+
+    render(<CryptoWidget />);
+
+    expect(screen.getByText("Five-asset limit reached.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Add" })).toBeDisabled();
   });
 
   it("shows the API error and a retry action", async () => {

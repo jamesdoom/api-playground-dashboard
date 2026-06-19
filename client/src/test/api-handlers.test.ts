@@ -66,6 +66,27 @@ describe("Vercel API handlers", () => {
     expect(result.body).toEqual({ message: "Please select a valid news category." });
   });
 
+  it("rejects unsupported market watchlist selections", async () => {
+    const cryptoResult = createApiResponse();
+    const stocksResult = createApiResponse();
+
+    await cryptoHandler(
+      { method: "GET", query: { ids: "bitcoin,not-a-coin" } },
+      cryptoResult.response,
+    );
+    await stocksHandler(
+      { method: "GET", query: { symbols: "AAPL,NOPE" } },
+      stocksResult.response,
+    );
+
+    expect(cryptoResult.statusCode).toBe(400);
+    expect(cryptoResult.body).toEqual({
+      message: "Please select one to five supported crypto assets.",
+    });
+    expect(stocksResult.statusCode).toBe(400);
+    expect(stocksResult.body).toEqual({ message: "Please select one to five supported stocks." });
+  });
+
   it("returns mapped weather data with the CDN cache policy", async () => {
     vi.stubGlobal(
       "fetch",

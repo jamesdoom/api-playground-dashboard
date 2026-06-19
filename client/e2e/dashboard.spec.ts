@@ -32,28 +32,34 @@ async function mockDashboardApis(page: Page) {
       },
     }),
   );
-  await page.route(/\/api\/crypto$/, (route) =>
-    route.fulfill({
-      json: {
-        assets: [
-          { id: "bitcoin", name: "Bitcoin", symbol: "BTC", priceUsd: 67500, change24h: 2.5 },
-          { id: "ethereum", name: "Ethereum", symbol: "ETH", priceUsd: 3500, change24h: -1.25 },
-          { id: "solana", name: "Solana", symbol: "SOL", priceUsd: 145, change24h: 0.5 },
-        ],
-      },
-    }),
-  );
-  await page.route(/\/api\/stocks$/, (route) =>
-    route.fulfill({
-      json: {
-        quotes: [
-          { symbol: "AAPL", name: "Apple", priceUsd: 205.5, changePercent: 1.25 },
-          { symbol: "MSFT", name: "Microsoft", priceUsd: 450.25, changePercent: -0.75 },
-          { symbol: "NVDA", name: "Nvidia", priceUsd: 150, changePercent: 0.5 },
-        ],
-      },
-    }),
-  );
+  await page.route(/\/api\/crypto(?:\?.*)?$/, (route) => {
+    const catalog = {
+      bitcoin: { id: "bitcoin", name: "Bitcoin", symbol: "BTC", priceUsd: 67500, change24h: 2.5 },
+      ethereum: { id: "ethereum", name: "Ethereum", symbol: "ETH", priceUsd: 3500, change24h: -1.25 },
+      solana: { id: "solana", name: "Solana", symbol: "SOL", priceUsd: 145, change24h: 0.5 },
+      dogecoin: { id: "dogecoin", name: "Dogecoin", symbol: "DOGE", priceUsd: 0.15, change24h: 1.2 },
+      cardano: { id: "cardano", name: "Cardano", symbol: "ADA", priceUsd: 0.6, change24h: -0.4 },
+      ripple: { id: "ripple", name: "XRP", symbol: "XRP", priceUsd: 0.5, change24h: 0.8 },
+    } as const;
+    const ids = new URL(route.request().url()).searchParams.get("ids")?.split(",") ?? [];
+    const assets = ids.flatMap((id) => id in catalog ? [catalog[id as keyof typeof catalog]] : []);
+    return route.fulfill({ json: { assets } });
+  });
+  await page.route(/\/api\/stocks(?:\?.*)?$/, (route) => {
+    const catalog = {
+      AAPL: { symbol: "AAPL", name: "Apple", priceUsd: 205.5, changePercent: 1.25 },
+      MSFT: { symbol: "MSFT", name: "Microsoft", priceUsd: 450.25, changePercent: -0.75 },
+      NVDA: { symbol: "NVDA", name: "Nvidia", priceUsd: 150, changePercent: 0.5 },
+      GOOGL: { symbol: "GOOGL", name: "Alphabet", priceUsd: 180, changePercent: 0.35 },
+      AMZN: { symbol: "AMZN", name: "Amazon", priceUsd: 210, changePercent: -0.2 },
+      TSLA: { symbol: "TSLA", name: "Tesla", priceUsd: 320, changePercent: 2.1 },
+    } as const;
+    const symbols = new URL(route.request().url()).searchParams.get("symbols")?.split(",") ?? [];
+    const quotes = symbols.flatMap((symbol) => (
+      symbol in catalog ? [catalog[symbol as keyof typeof catalog]] : []
+    ));
+    return route.fulfill({ json: { quotes } });
+  });
   await page.route(newsApiPattern, (route) => route.fulfill({ json: newsResponse }));
 }
 
@@ -150,4 +156,26 @@ test("recovers from an API refresh error", async ({ page }) => {
   await news.getByRole("button", { name: "Retry" }).click();
   await expect(news.getByRole("alert")).not.toBeVisible();
   await expect(news.getByText("Example technology headline")).toBeVisible();
+});
+
+test("customizes and restores both market watchlists", async ({ page }) => {
+  const crypto = page.getByRole("region", { name: "Crypto market" });
+  const stocks = page.getByRole("region", { name: "Stock watchlist" });
+
+  await crypto.getByLabel("Add crypto asset").selectOption("dogecoin");
+  await crypto.getByRole("button", { name: "Add" }).click();
+  await expect(crypto.getByText("Dogecoin")).toBeVisible();
+  await crypto.getByRole("button", { name: "Remove Bitcoin" }).click();
+
+  await stocks.getByLabel("Add stock").selectOption("GOOGL");
+  await stocks.getByRole("button", { name: "Add" }).click();
+  await expect(stocks.getByText("Alphabet")).toBeVisible();
+  await stocks.getByRole("button", { name: "Remove Apple" }).click();
+
+  await page.reload();
+
+  await expect(crypto.getByText("Dogecoin")).toBeVisible();
+  await expect(crypto.getByRole("button", { name: "Remove Bitcoin" })).toHaveCount(0);
+  await expect(stocks.getByText("Alphabet")).toBeVisible();
+  await expect(stocks.getByRole("button", { name: "Remove Apple" })).toHaveCount(0);
 });

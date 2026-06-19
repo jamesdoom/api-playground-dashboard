@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { parseCryptoIds } from "../../../shared/contracts/crypto.ts";
 import { parseNewsCategory } from "../../../shared/contracts/news.ts";
-import { TRACKED_STOCKS } from "../../../shared/contracts/stocks.ts";
+import { AVAILABLE_STOCKS, parseStockSymbols } from "../../../shared/contracts/stocks.ts";
 import { mapCoinGeckoResponse } from "../../../shared/services/cryptoService.ts";
 import { mapGuardianResponse } from "../../../shared/services/newsService.ts";
 import { mapFinnhubQuote } from "../../../shared/services/stocksService.ts";
@@ -8,7 +9,7 @@ import { mapOpenWeatherResponse } from "../../../shared/services/weatherService.
 
 describe("shared provider transformations", () => {
   it("maps Finnhub data into the stock quote contract", () => {
-    const quote = mapFinnhubQuote(TRACKED_STOCKS[0], { c: 205.5, dp: 1.25 });
+    const quote = mapFinnhubQuote(AVAILABLE_STOCKS[0], { c: 205.5, dp: 1.25 });
 
     expect(quote).toEqual({
       symbol: "AAPL",
@@ -16,6 +17,15 @@ describe("shared provider transformations", () => {
       priceUsd: 205.5,
       changePercent: 1.25,
     });
+  });
+
+  it("validates and normalizes customizable market selections", () => {
+    expect(parseCryptoIds("bitcoin,DOGECOIN,bitcoin")).toEqual(["bitcoin", "dogecoin"]);
+    expect(parseCryptoIds("bitcoin,unknown")).toBeNull();
+    expect(parseCryptoIds("bitcoin,ethereum,solana,dogecoin,cardano,ripple")).toBeNull();
+    expect(parseStockSymbols("aapl,TSLA,aapl")).toEqual(["AAPL", "TSLA"]);
+    expect(parseStockSymbols("AAPL,UNKNOWN")).toBeNull();
+    expect(parseStockSymbols("AAPL,MSFT,NVDA,GOOGL,AMZN,TSLA")).toBeNull();
   });
 
   it("maps CoinGecko prices into the dashboard contract", () => {

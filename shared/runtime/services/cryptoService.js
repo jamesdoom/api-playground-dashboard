@@ -1,8 +1,12 @@
-import { TRACKED_CRYPTOCURRENCIES, } from "../contracts/crypto.js";
+import { AVAILABLE_CRYPTOCURRENCIES, DEFAULT_CRYPTO_IDS, } from "../contracts/crypto.js";
 import { ProviderError } from "../errors/ProviderError.js";
 const COINGECKO_BASE_URL = "https://api.coingecko.com/api/v3/simple/price";
-export function mapCoinGeckoResponse(data) {
-    return TRACKED_CRYPTOCURRENCIES.map((crypto) => {
+export function mapCoinGeckoResponse(data, ids = DEFAULT_CRYPTO_IDS) {
+    return ids.map((id) => {
+        const crypto = AVAILABLE_CRYPTOCURRENCIES.find((candidate) => candidate.id === id);
+        if (!crypto) {
+            throw new ProviderError("unavailable", "CoinGecko received an unsupported asset request.");
+        }
         const marketData = data[crypto.id];
         if (typeof marketData?.usd !== "number" || typeof marketData.usd_24h_change !== "number") {
             throw new ProviderError("unavailable", `CoinGecko did not return ${crypto.name} pricing.`);
@@ -14,12 +18,12 @@ export function mapCoinGeckoResponse(data) {
         };
     });
 }
-export async function getCryptoPrices(apiKey) {
+export async function getCryptoPrices(apiKey, ids = DEFAULT_CRYPTO_IDS) {
     if (!apiKey) {
         throw new ProviderError("not_configured", "CoinGecko API key is not configured.");
     }
     const searchParams = new URLSearchParams({
-        ids: TRACKED_CRYPTOCURRENCIES.map((crypto) => crypto.id).join(","),
+        ids: ids.join(","),
         vs_currencies: "usd",
         include_24hr_change: "true",
     });
@@ -37,7 +41,7 @@ export async function getCryptoPrices(apiKey) {
             throw new ProviderError("unavailable", "CoinGecko request failed.");
         }
         const data = (await response.json());
-        return mapCoinGeckoResponse(data);
+        return mapCoinGeckoResponse(data, ids);
     }
     catch (error) {
         if (error instanceof ProviderError) {

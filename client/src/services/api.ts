@@ -1,6 +1,6 @@
-import type { CryptoResponse } from "../types/crypto";
+import type { CryptoId, CryptoResponse } from "../types/crypto";
 import type { NewsCategory, NewsResponse } from "../types/news";
-import type { StocksResponse } from "../types/stocks";
+import type { StockSymbol, StocksResponse } from "../types/stocks";
 import type { WeatherData } from "../types/weather";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
@@ -48,8 +48,12 @@ export async function fetchLatestNews(category: NewsCategory, signal?: AbortSign
   return response.json() as Promise<NewsResponse>;
 }
 
-export async function fetchCryptoPrices(signal?: AbortSignal): Promise<CryptoResponse> {
-  const response = await fetch(`${API_BASE_URL}/crypto`, { signal });
+export async function fetchCryptoPrices(
+  ids: readonly CryptoId[],
+  signal?: AbortSignal,
+): Promise<CryptoResponse> {
+  const searchParams = new URLSearchParams({ ids: ids.join(",") });
+  const response = await fetch(`${API_BASE_URL}/crypto?${searchParams.toString()}`, { signal });
 
   if (!response.ok) {
     throw new Error(await getErrorMessage(response));
@@ -58,8 +62,12 @@ export async function fetchCryptoPrices(signal?: AbortSignal): Promise<CryptoRes
   return response.json() as Promise<CryptoResponse>;
 }
 
-export async function fetchStockQuotes(signal?: AbortSignal): Promise<StocksResponse> {
-  const response = await fetch(`${API_BASE_URL}/stocks`, { signal });
+export async function fetchStockQuotes(
+  symbols: readonly StockSymbol[],
+  signal?: AbortSignal,
+): Promise<StocksResponse> {
+  const searchParams = new URLSearchParams({ symbols: symbols.join(",") });
+  const response = await fetch(`${API_BASE_URL}/stocks?${searchParams.toString()}`, { signal });
 
   if (!response.ok) {
     throw new Error(await getErrorMessage(response));

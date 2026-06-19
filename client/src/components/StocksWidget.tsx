@@ -1,7 +1,15 @@
 import { useEffect, useState } from "react";
 import { fetchStockQuotes } from "../services/api";
-import type { StockQuote } from "../types/stocks";
+import {
+  AVAILABLE_STOCKS,
+  DEFAULT_STOCK_SYMBOLS,
+  MAX_STOCK_WATCHLIST_ITEMS,
+  isStockSymbol,
+  type StockQuote,
+  type StockSymbol,
+} from "../types/stocks";
 
+const STOCKS_STORAGE_KEY = "dashboard-stocks-watchlist";
 const priceFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
@@ -12,15 +20,45 @@ const updatedTimeFormatter = new Intl.DateTimeFormat("en-US", {
   minute: "2-digit",
 });
 
+function getStoredStockSymbols(): StockSymbol[] {
+  try {
+    const stored = window.localStorage.getItem(STOCKS_STORAGE_KEY);
+
+    if (stored === null) {
+      return [...DEFAULT_STOCK_SYMBOLS];
+    }
+
+    const parsed = JSON.parse(stored) as unknown;
+
+    if (!Array.isArray(parsed)) {
+      return [...DEFAULT_STOCK_SYMBOLS];
+    }
+
+    return [...new Set(parsed.filter((value): value is StockSymbol => (
+      typeof value === "string" && isStockSymbol(value)
+    )))].slice(0, MAX_STOCK_WATCHLIST_ITEMS);
+  } catch {
+    return [...DEFAULT_STOCK_SYMBOLS];
+  }
+}
+
+function saveStockSymbols(symbols: readonly StockSymbol[]) {
+  try {
+    window.localStorage.setItem(STOCKS_STORAGE_KEY, JSON.stringify(symbols));
+  } catch {
+    // Storage is optional; the watchlist still works for the current visit.
+  }
+}
+
 function formatChange(change: number): string {
   const prefix = change > 0 ? "+" : "";
   return `${prefix}${change.toFixed(2)}%`;
 }
 
-function StocksSkeleton() {
+function StocksSkeleton({ count }: { count: number }) {
   return (
     <div className="stocks-list stocks-skeleton" aria-hidden="true">
-      {Array.from({ length: 3 }, (_, index) => (
+      {Array.from({ length: count }, (_, index) => (
         <div className="stock-row" key={index}>
           <span className="skeleton-block stock-symbol-skeleton" />
           <div className="skeleton-stack">
@@ -38,13 +76,27 @@ function StocksSkeleton() {
 }
 
 function StocksWidget() {
+  const [selectedSymbols, setSelectedSymbols] = useState<StockSymbol[]>(getStoredStockSymbols);
+  const [selectedOption, setSelectedOption] = useState("");
   const [quotes, setQuotes] = useState<StockQuote[]>([]);
   const [errorMessage, setErrorMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(selectedSymbols.length > 0);
   const [refreshCount, setRefreshCount] = useState(0);
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
 
+  const availableOptions = AVAILABLE_STOCKS.filter(
+    (stock) => !selectedSymbols.includes(stock.symbol),
+  );
+  const optionToAdd = availableOptions.some((stock) => stock.symbol === selectedOption)
+    ? selectedOption
+    : (availableOptions[0]?.symbol ?? "");
+  const isAtLimit = selectedSymbols.length >= MAX_STOCK_WATCHLIST_ITEMS;
+
   useEffect(() => {
+    if (selectedSymbols.length === 0) {
+      return;
+    }
+
     const controller = new AbortController();
 
     async function loadQuotes() {
@@ -52,7 +104,12 @@ function StocksWidget() {
       setErrorMessage("");
 
       try {
-        const stocks = await fetchStockQuotes(controller.signal);
+        const stocks = await fetchStockQuotes(selectedSymbols, controller.signal);
+
+        if (controller.signal.aborted) {
+          return;
+        }
+
         setQuotes(stocks.quotes);
         setUpdatedAt(new Date());
       } catch (error) {
@@ -70,7 +127,31 @@ function StocksWidget() {
 
     void loadQuotes();
     return () => controller.abort();
-  }, [refreshCount]);
+  }, [selectedSymbols, refreshCount]);
+
+  function updateWatchlist(symbols: StockSymbol[]) {
+    setSelectedSymbols(symbols);
+    setQuotes((current) => current.filter((quote) => symbols.includes(quote.symbol)));
+
+    if (symbols.length === 0) {
+      setErrorMessage("");
+      setIsLoading(false);
+      setUpdatedAt(null);
+    }
+
+    saveStockSymbols(symbols);
+  }
+
+  function handleAdd() {
+    if (!isAtLimit && isStockSymbol(optionToAdd) && !selectedSymbols.includes(optionToAdd)) {
+      updateWatchlist([...selectedSymbols, optionToAdd]);
+      setSelectedOption("");
+    }
+  }
+
+  function handleRemove(symbol: StockSymbol) {
+    updateWatchlist(selectedSymbols.filter((selectedSymbol) => selectedSymbol !== symbol));
+  }
 
   return (
     <section
@@ -85,6 +166,30 @@ function StocksWidget() {
         </div>
         <span className="market-currency">USD</span>
       </div>
+
+      <div className="watchlist-controls">
+        <label className="sr-only" htmlFor="stocks-selector">Add stock</label>
+        <select
+          id="stocks-selector"
+          value={optionToAdd}
+          onChange={(event) => setSelectedOption(event.target.value)}
+          disabled={isAtLimit || availableOptions.length === 0}
+        >
+          {availableOptions.map((stock) => (
+            <option key={stock.symbol} value={stock.symbol}>{stock.name}</option>
+          ))}
+        </select>
+        <button
+          type="button"
+          className="secondary-button"
+          onClick={handleAdd}
+          disabled={isAtLimit || !optionToAdd}
+        >
+          Add
+        </button>
+      </div>
+
+      {isAtLimit ? <p className="watchlist-message">Five-stock limit reached.</p> : null}
 
       {errorMessage ? (
         <div className="error-state" role="alert">
@@ -102,8 +207,12 @@ function StocksWidget() {
       {isLoading && quotes.length === 0 ? (
         <>
           <p className="sr-only" role="status">Loading current stock prices...</p>
-          <StocksSkeleton />
+          <StocksSkeleton count={selectedSymbols.length} />
         </>
+      ) : null}
+
+      {!isLoading && selectedSymbols.length === 0 ? (
+        <p className="watchlist-empty">Add a company to start your stock watchlist.</p>
       ) : null}
 
       {quotes.length > 0 ? (
@@ -117,7 +226,7 @@ function StocksWidget() {
                   : "neutral";
 
               return (
-                <li className="stock-row" key={quote.symbol}>
+                <li className="stock-row watchlist-row" key={quote.symbol}>
                   <span className="stock-symbol" aria-hidden="true">
                     {quote.symbol.slice(0, 1)}
                   </span>
@@ -134,6 +243,14 @@ function StocksWidget() {
                       {formatChange(quote.changePercent)}
                     </span>
                   </div>
+                  <button
+                    type="button"
+                    className="watchlist-remove"
+                    onClick={() => handleRemove(quote.symbol)}
+                    aria-label={`Remove ${quote.name}`}
+                  >
+                    &times;
+                  </button>
                 </li>
               );
             })}
