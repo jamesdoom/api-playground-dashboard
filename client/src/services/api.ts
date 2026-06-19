@@ -1,4 +1,4 @@
-import type { CryptoId, CryptoResponse } from "../types/crypto";
+import type { CryptoHistoryResponse, CryptoId, CryptoResponse } from "../types/crypto";
 import type { NewsCategory, NewsResponse } from "../types/news";
 import type { StockSymbol, StocksResponse } from "../types/stocks";
 import type { WeatherData } from "../types/weather";
@@ -60,6 +60,20 @@ export async function fetchCryptoPrices(
   }
 
   return response.json() as Promise<CryptoResponse>;
+}
+
+export async function fetchCryptoHistory(
+  id: CryptoId,
+  signal?: AbortSignal,
+): Promise<CryptoHistoryResponse> {
+  const searchParams = new URLSearchParams({ id });
+  const response = await fetch(`${API_BASE_URL}/crypto/history?${searchParams.toString()}`, { signal });
+
+  if (!response.ok) {
+    throw new Error(await getErrorMessage(response));
+  }
+
+  return response.json() as Promise<CryptoHistoryResponse>;
 }
 
 export async function fetchStockQuotes(

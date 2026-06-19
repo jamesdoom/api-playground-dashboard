@@ -8,6 +8,7 @@ import {
   type CryptoAsset,
   type CryptoId,
 } from "../types/crypto";
+import CryptoTrendChart from "./CryptoTrendChart";
 
 const CRYPTO_STORAGE_KEY = "dashboard-crypto-watchlist";
 const updatedTimeFormatter = new Intl.DateTimeFormat("en-US", {
@@ -225,7 +226,7 @@ function CryptoWidget() {
               const direction = asset.change24h > 0 ? "positive" : asset.change24h < 0 ? "negative" : "neutral";
 
               return (
-                <li className="crypto-row watchlist-row" key={asset.id}>
+                <li className="crypto-row watchlist-row crypto-row-with-trend" key={asset.id}>
                   <span className={`crypto-symbol crypto-symbol-${asset.id}`} aria-hidden="true">
                     {asset.symbol.slice(0, 1)}
                   </span>
@@ -250,6 +251,7 @@ function CryptoWidget() {
                   >
                     &times;
                   </button>
+                  <CryptoTrendChart id={asset.id} name={asset.name} />
                 </li>
               );
             })}

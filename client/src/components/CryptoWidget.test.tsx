@@ -17,13 +17,39 @@ const cryptoResponse = {
   ],
 };
 
+function historyResponse(id: "bitcoin" | "ethereum" | "solana" | "dogecoin") {
+  const asset = {
+    bitcoin: { name: "Bitcoin", symbol: "BTC", prices: [60000, 62000, 67500] },
+    ethereum: { name: "Ethereum", symbol: "ETH", prices: [3700, 3600, 3500] },
+    solana: { name: "Solana", symbol: "SOL", prices: [145, 145, 145] },
+    dogecoin: { name: "Dogecoin", symbol: "DOGE", prices: [0.14, 0.15, 0.15] },
+  }[id];
+
+  return {
+    id,
+    name: asset.name,
+    symbol: asset.symbol,
+    days: 7,
+    prices: asset.prices.map((priceUsd, index) => ({ timestamp: index + 1, priceUsd })),
+  };
+}
+
 describe("CryptoWidget", () => {
   it("shows loading, current prices, movement, and refresh controls", async () => {
     let resolveRequest!: (response: Response) => void;
     const request = new Promise<Response>((resolve) => {
       resolveRequest = resolve;
     });
-    vi.stubGlobal("fetch", vi.fn().mockReturnValue(request));
+    vi.stubGlobal("fetch", vi.fn((input: string | URL | Request) => {
+      const url = String(input);
+
+      if (url.includes("/crypto/history")) {
+        const id = new URL(url, "http://localhost").searchParams.get("id") as "bitcoin" | "ethereum" | "solana";
+        return Promise.resolve(jsonResponse(historyResponse(id)));
+      }
+
+      return request;
+    }));
 
     render(<CryptoWidget />);
     expect(screen.getByRole("status")).toHaveTextContent("Loading current crypto prices");
@@ -37,6 +63,8 @@ describe("CryptoWidget", () => {
     expect(screen.getByLabelText("Bitcoin 24-hour change +2.50%")).toBeInTheDocument();
     expect(screen.getByText(/^Updated /)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Refresh" })).toBeEnabled();
+    expect(await screen.findByText(/Bitcoin rose 12.50% over seven days/)).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: /Seven-day trend Bitcoin rose 12.50%/i })).toBeInTheDocument();
   });
 
   it("restores an empty watchlist and persists an added asset", async () => {
@@ -95,5 +123,30 @@ describe("CryptoWidget", () => {
       "Crypto prices are unavailable right now.",
     );
     expect(screen.getByRole("button", { name: "Retry" })).toBeEnabled();
+  });
+
+  it("retries a failed historical trend", async () => {
+    let historyRequests = 0;
+    vi.stubGlobal("fetch", vi.fn((input: string | URL | Request) => {
+      const url = String(input);
+
+      if (!url.includes("/crypto/history")) {
+        return Promise.resolve(jsonResponse({ assets: [cryptoResponse.assets[0]] }));
+      }
+
+      historyRequests += 1;
+      return Promise.resolve(
+        historyRequests === 1
+          ? jsonResponse({ message: "Crypto prices are unavailable right now." }, 500)
+          : jsonResponse(historyResponse("bitcoin")),
+      );
+    }));
+
+    render(<CryptoWidget />);
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Bitcoin trend unavailable.");
+    fireEvent.click(screen.getByRole("button", { name: "Retry trend" }));
+
+    expect(await screen.findByText(/Bitcoin rose 12.50% over seven days/)).toBeInTheDocument();
   });
 });

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { parseCryptoIds } from "../../../shared/contracts/crypto.ts";
 import { parseNewsCategory } from "../../../shared/contracts/news.ts";
 import { AVAILABLE_STOCKS, parseStockSymbols } from "../../../shared/contracts/stocks.ts";
-import { mapCoinGeckoResponse } from "../../../shared/services/cryptoService.ts";
+import { mapCoinGeckoHistory, mapCoinGeckoResponse } from "../../../shared/services/cryptoService.ts";
 import { mapGuardianResponse } from "../../../shared/services/newsService.ts";
 import { mapFinnhubQuote } from "../../../shared/services/stocksService.ts";
 import { mapOpenWeatherResponse } from "../../../shared/services/weatherService.ts";
@@ -40,6 +40,24 @@ describe("shared provider transformations", () => {
       { id: "ethereum", name: "Ethereum", symbol: "ETH", priceUsd: 3500, change24h: -1.25 },
       { id: "solana", name: "Solana", symbol: "SOL", priceUsd: 145, change24h: 0.5 },
     ]);
+  });
+
+  it("maps CoinGecko history into a compact dashboard series", () => {
+    const history = mapCoinGeckoHistory("bitcoin", {
+      prices: [[1, 60000], [2, 62000], [3, 67500]],
+    });
+
+    expect(history).toEqual({
+      id: "bitcoin",
+      name: "Bitcoin",
+      symbol: "BTC",
+      days: 7,
+      prices: [
+        { timestamp: 1, priceUsd: 60000 },
+        { timestamp: 2, priceUsd: 62000 },
+        { timestamp: 3, priceUsd: 67500 },
+      ],
+    });
   });
 
   it("maps OpenWeather data into the dashboard contract", () => {

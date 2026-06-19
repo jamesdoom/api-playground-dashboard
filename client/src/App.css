@@ -501,6 +501,88 @@
   min-height: 216px;
 }
 
+.crypto-row-with-trend {
+  padding: 12px 0;
+}
+
+.crypto-trend {
+  display: grid;
+  grid-column: 2 / -1;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 5px 12px;
+  width: 100%;
+  min-width: 0;
+  margin: 2px 0 4px;
+}
+
+.crypto-trend figcaption {
+  color: #475569;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.crypto-chart {
+  grid-column: 1 / -1;
+  width: 100%;
+  height: 58px;
+  overflow: visible;
+}
+
+.crypto-chart-line {
+  fill: none;
+  stroke: #64748b;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.crypto-trend-positive .crypto-chart-line {
+  stroke: #0f766e;
+}
+
+.crypto-trend-negative .crypto-chart-line {
+  stroke: #b42318;
+}
+
+.crypto-trend-summary {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #64748b;
+  font-size: 0.68rem;
+  line-height: 1.45;
+}
+
+.crypto-trend-loading {
+  display: block;
+}
+
+.crypto-chart-skeleton {
+  width: 100%;
+  height: 58px;
+}
+
+.crypto-trend-error {
+  align-items: center;
+  color: #9f1d16;
+  font-size: 0.72rem;
+}
+
+.crypto-trend-error p {
+  margin: 0;
+}
+
+.crypto-trend-error button {
+  padding: 3px 7px;
+  color: #9f1d16;
+  background: #ffffff;
+  border: 1px solid #e7aaa4;
+  border-radius: 4px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .stocks-list {
   display: grid;
   gap: 0;

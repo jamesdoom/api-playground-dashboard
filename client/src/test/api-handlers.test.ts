@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import cryptoHandler from "../../../api/crypto.ts";
+import cryptoHistoryHandler from "../../../api/crypto/history.ts";
 import newsHandler from "../../../api/news.ts";
 import stocksHandler from "../../../api/stocks.ts";
 import weatherHandler from "../../../api/weather.ts";
@@ -87,6 +88,14 @@ describe("Vercel API handlers", () => {
     expect(stocksResult.body).toEqual({ message: "Please select one to five supported stocks." });
   });
 
+  it("rejects an unsupported historical crypto asset", async () => {
+    const result = createApiResponse();
+    await cryptoHistoryHandler({ method: "GET", query: { id: "not-a-coin" } }, result.response);
+
+    expect(result.statusCode).toBe(400);
+    expect(result.body).toEqual({ message: "Please select a supported crypto asset." });
+  });
+
   it("returns mapped weather data with the CDN cache policy", async () => {
     vi.stubGlobal(
       "fetch",
@@ -171,6 +180,35 @@ describe("Vercel API handlers", () => {
       ],
     });
     expect(result.headers.get("Cache-Control")).toContain("s-maxage=300");
+  });
+
+  it("returns normalized crypto history with the longer CDN cache policy", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({ prices: [[1, 60000], [2, 62000], [3, 67500]] }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        ),
+      ),
+    );
+    const result = createApiResponse();
+
+    await cryptoHistoryHandler({ method: "GET", query: { id: "bitcoin" } }, result.response);
+
+    expect(result.statusCode).toBe(200);
+    expect(result.body).toEqual({
+      id: "bitcoin",
+      name: "Bitcoin",
+      symbol: "BTC",
+      days: 7,
+      prices: [
+        { timestamp: 1, priceUsd: 60000 },
+        { timestamp: 2, priceUsd: 62000 },
+        { timestamp: 3, priceUsd: 67500 },
+      ],
+    });
+    expect(result.headers.get("Cache-Control")).toContain("s-maxage=900");
   });
 
   it("returns mapped stock quotes with the CDN cache policy", async () => {

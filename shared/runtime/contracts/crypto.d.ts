@@ -36,6 +36,20 @@ export interface CryptoAsset {
 export interface CryptoResponse {
     assets: CryptoAsset[];
 }
+export interface CryptoPricePoint {
+    timestamp: number;
+    priceUsd: number;
+}
+export interface CryptoHistoryResponse {
+    id: CryptoId;
+    name: string;
+    symbol: string;
+    days: 7;
+    prices: CryptoPricePoint[];
+}
+export interface CoinGeckoMarketChartResponse {
+    prices?: unknown;
+}
 export type CoinGeckoSimplePriceResponse = Record<string, {
     usd?: number;
     usd_24h_change?: number;

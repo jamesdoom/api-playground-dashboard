@@ -10,13 +10,14 @@ A responsive full-stack dashboard that brings several third-party APIs into one 
 
 - Search current weather conditions by city with OpenWeather
 - Track Bitcoin, Ethereum, and Solana prices and 24-hour movement with CoinGecko
+- Compare seven-day crypto price trends with lightweight, accessible SVG charts
 - Follow Apple, Microsoft, and Nvidia prices and daily movement with Finnhub
 - Customize crypto and stock watchlists from approved catalogs with a five-item limit
 - Browse recent Guardian headlines by category
 - Refresh controls, loading skeletons, retry actions, and last-updated timestamps
 - Persistent city, category, and market watchlist preferences using `localStorage`
 - Responsive layouts and accessible loading and error announcements
-- Five-minute CDN caching with stale-while-revalidate support
+- Five-minute quote caching and fifteen-minute historical-price caching with stale-while-revalidate support
 - Shared provider services used by both Express and Vercel serverless handlers
 - Vitest, Testing Library, ESLint, production build, and server type checks in CI
 - Playwright browser tests across desktop, tablet, and mobile layouts
@@ -36,7 +37,7 @@ A responsive full-stack dashboard that brings several third-party APIs into one 
 ```text
 React dashboard
       |
-      | /api/weather, /api/crypto, /api/stocks, /api/news
+      | /api/weather, /api/crypto, /api/crypto/history, /api/stocks, /api/news
       v
 +----------------------+     +--------------------------+
 | Local Express routes |     | Vercel API functions     |
@@ -127,6 +128,7 @@ Vite serves the dashboard at `http://localhost:5173` and proxies `/api` requests
 | `GET` | `/api/health` | Reports API availability |
 | `GET` | `/api/weather?city=Chicago` | Returns normalized current conditions |
 | `GET` | `/api/crypto?ids=bitcoin,dogecoin` | Returns up to five approved USD prices and 24-hour changes |
+| `GET` | `/api/crypto/history?id=bitcoin` | Returns a cached, normalized seven-day USD price series |
 | `GET` | `/api/stocks?symbols=AAPL,TSLA` | Returns up to five approved USD quotes and daily changes |
 | `GET` | `/api/news?category=technology` | Returns six recent headlines |
 
@@ -157,6 +159,6 @@ The repository is configured for Vercel. The React client builds to `client/dist
 
 ## Roadmap
 
-- Add historical charts for market assets
+- Evaluate a suitable stock-history provider or Finnhub plan for stock trend charts
 - Add more API categories such as movies, sports, and AI
 - Add drag-and-drop widget customization

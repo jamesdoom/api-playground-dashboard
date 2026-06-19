@@ -1,6 +1,27 @@
 import { expect, test, type Page } from "@playwright/test";
 
 const newsApiPattern = /\/api\/news(?:\?.*)?$/;
+const cryptoHistoryApiPattern = /\/api\/crypto\/history(?:\?.*)?$/;
+
+const cryptoHistoryCatalog = {
+  bitcoin: { name: "Bitcoin", symbol: "BTC", prices: [60000, 62000, 67500] },
+  ethereum: { name: "Ethereum", symbol: "ETH", prices: [3700, 3600, 3500] },
+  solana: { name: "Solana", symbol: "SOL", prices: [140, 142, 145] },
+  dogecoin: { name: "Dogecoin", symbol: "DOGE", prices: [0.14, 0.145, 0.15] },
+  cardano: { name: "Cardano", symbol: "ADA", prices: [0.62, 0.61, 0.6] },
+  ripple: { name: "XRP", symbol: "XRP", prices: [0.48, 0.49, 0.5] },
+} as const;
+
+function getCryptoHistory(id: keyof typeof cryptoHistoryCatalog) {
+  const asset = cryptoHistoryCatalog[id];
+  return {
+    id,
+    name: asset.name,
+    symbol: asset.symbol,
+    days: 7,
+    prices: asset.prices.map((priceUsd, index) => ({ timestamp: index + 1, priceUsd })),
+  };
+}
 
 const newsResponse = {
   articles: [
@@ -32,6 +53,10 @@ async function mockDashboardApis(page: Page) {
       },
     }),
   );
+  await page.route(cryptoHistoryApiPattern, (route) => {
+    const id = new URL(route.request().url()).searchParams.get("id") as keyof typeof cryptoHistoryCatalog;
+    return route.fulfill({ json: getCryptoHistory(id) });
+  });
   await page.route(/\/api\/crypto(?:\?.*)?$/, (route) => {
     const catalog = {
       bitcoin: { id: "bitcoin", name: "Bitcoin", symbol: "BTC", priceUsd: 67500, change24h: 2.5 },
@@ -70,7 +95,7 @@ test.beforeEach(async ({ page }) => {
 
 test("renders every dashboard integration and searches for weather", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "API Playground Dashboard" })).toBeVisible();
-  await expect(page.getByText("Bitcoin")).toBeVisible();
+  await expect(page.getByText("Bitcoin", { exact: true })).toBeVisible();
   await expect(page.getByText("Apple", { exact: true })).toBeVisible();
   await expect(page.getByText("Example technology headline")).toBeVisible();
 
@@ -81,7 +106,7 @@ test("renders every dashboard integration and searches for weather", async ({ pa
 });
 
 test("keeps widgets and weather controls inside the viewport", async ({ page }) => {
-  await expect(page.getByText("Bitcoin")).toBeVisible();
+  await expect(page.getByText("Bitcoin", { exact: true })).toBeVisible();
 
   const viewport = page.viewportSize();
   expect(viewport).not.toBeNull();
@@ -108,7 +133,7 @@ test("keeps widgets and weather controls inside the viewport", async ({ page }) 
 });
 
 test("uses the expected responsive widget order", async ({ page }, testInfo) => {
-  await expect(page.getByText("Bitcoin")).toBeVisible();
+  await expect(page.getByText("Bitcoin", { exact: true })).toBeVisible();
 
   const weather = await page.getByRole("region", { name: "Weather" }).boundingBox();
   const crypto = await page.getByRole("region", { name: "Crypto market" }).boundingBox();
@@ -164,7 +189,7 @@ test("customizes and restores both market watchlists", async ({ page }) => {
 
   await crypto.getByLabel("Add crypto asset").selectOption("dogecoin");
   await crypto.getByRole("button", { name: "Add" }).click();
-  await expect(crypto.getByText("Dogecoin")).toBeVisible();
+  await expect(crypto.getByText("Dogecoin", { exact: true })).toBeVisible();
   await crypto.getByRole("button", { name: "Remove Bitcoin" }).click();
 
   await stocks.getByLabel("Add stock").selectOption("GOOGL");
@@ -174,8 +199,37 @@ test("customizes and restores both market watchlists", async ({ page }) => {
 
   await page.reload();
 
-  await expect(crypto.getByText("Dogecoin")).toBeVisible();
+  await expect(crypto.getByText("Dogecoin", { exact: true })).toBeVisible();
   await expect(crypto.getByRole("button", { name: "Remove Bitcoin" })).toHaveCount(0);
   await expect(stocks.getByText("Alphabet")).toBeVisible();
   await expect(stocks.getByRole("button", { name: "Remove Apple" })).toHaveCount(0);
+});
+
+test("announces crypto trends and recovers a failed history request", async ({ page }) => {
+  const crypto = page.getByRole("region", { name: "Crypto market" });
+  await expect(crypto.getByText(/Bitcoin rose 12.50% over seven days/)).toBeVisible();
+  await expect(crypto.getByRole("img", { name: /Seven-day trend Bitcoin rose 12.50%/i })).toBeVisible();
+
+  await page.unroute(cryptoHistoryApiPattern);
+  let failBitcoin = true;
+  await page.route(cryptoHistoryApiPattern, async (route) => {
+    const id = new URL(route.request().url()).searchParams.get("id") as keyof typeof cryptoHistoryCatalog;
+
+    if (id === "bitcoin") {
+      await new Promise((resolve) => setTimeout(resolve, 150));
+
+      if (failBitcoin) {
+        return route.fulfill({ status: 500, json: { message: "Crypto history is unavailable." } });
+      }
+    }
+
+    return route.fulfill({ json: getCryptoHistory(id) });
+  });
+
+  await page.reload();
+  await expect(crypto.getByRole("status").filter({ hasText: "Loading Bitcoin seven-day price trend" })).toBeVisible();
+  await expect(crypto.getByRole("alert").filter({ hasText: "Bitcoin trend unavailable" })).toBeVisible();
+  failBitcoin = false;
+  await crypto.getByRole("button", { name: "Retry trend" }).click();
+  await expect(crypto.getByText(/Bitcoin rose 12.50% over seven days/)).toBeVisible();
 });

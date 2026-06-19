@@ -4,4 +4,10 @@ export {
   MAX_WATCHLIST_ITEMS,
   isCryptoId,
 } from "../../../shared/contracts/crypto";
-export type { CryptoAsset, CryptoId, CryptoResponse } from "../../../shared/contracts/crypto";
+export type {
+  CryptoAsset,
+  CryptoHistoryResponse,
+  CryptoId,
+  CryptoPricePoint,
+  CryptoResponse,
+} from "../../../shared/contracts/crypto";
