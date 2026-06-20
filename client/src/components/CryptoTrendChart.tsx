@@ -1,57 +1,19 @@
 import { useEffect, useId, useState } from "react";
 import { fetchCryptoHistory } from "../services/api";
-import type { CryptoHistoryResponse, CryptoId, CryptoPricePoint } from "../types/crypto";
+import type { CryptoHistoryResponse, CryptoId } from "../types/crypto";
+import { buildChartPath, getTrendMetrics } from "./cryptoChart";
 
 const CHART_WIDTH = 280;
 const CHART_HEIGHT = 72;
-const CHART_PADDING = 4;
-
-function formatPrice(price: number): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: price < 1 ? 4 : 2,
-  }).format(price);
-}
-
-function buildChartPath(prices: CryptoPricePoint[]): string {
-  const values = prices.map((point) => point.priceUsd);
-  const minimum = Math.min(...values);
-  const maximum = Math.max(...values);
-  const spread = maximum - minimum;
-  const drawableWidth = CHART_WIDTH - CHART_PADDING * 2;
-  const drawableHeight = CHART_HEIGHT - CHART_PADDING * 2;
-
-  return prices.map((point, index) => {
-    const x = CHART_PADDING + index * drawableWidth / (prices.length - 1);
-    const y = spread === 0
-      ? CHART_HEIGHT / 2
-      : CHART_PADDING + (maximum - point.priceUsd) * drawableHeight / spread;
-    return `${index === 0 ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(1)}`;
-  }).join(" ");
-}
-
-function getTrendSummary(history: CryptoHistoryResponse): {
-  direction: "positive" | "negative" | "neutral";
-  summary: string;
-} {
-  const values = history.prices.map((point) => point.priceUsd);
-  const first = values[0];
-  const last = values.at(-1) ?? first;
-  const change = (last - first) / first * 100;
-  const minimum = Math.min(...values);
-  const maximum = Math.max(...values);
-  const direction = change > 0 ? "positive" : change < 0 ? "negative" : "neutral";
-  const movement = direction === "positive" ? "rose" : direction === "negative" ? "fell" : "was unchanged";
-  const changeText = direction === "neutral" ? "" : ` ${Math.abs(change).toFixed(2)}%`;
-
-  return {
-    direction,
-    summary: `${history.name} ${movement}${changeText} over seven days. Range ${formatPrice(minimum)} to ${formatPrice(maximum)}.`,
-  };
-}
-
-function CryptoTrendChart({ id, name }: { id: CryptoId; name: string }) {
+function CryptoTrendChart({
+  id,
+  name,
+  onShowDetails,
+}: {
+  id: CryptoId;
+  name: string;
+  onShowDetails: () => void;
+}) {
   const [history, setHistory] = useState<CryptoHistoryResponse | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -67,7 +29,7 @@ function CryptoTrendChart({ id, name }: { id: CryptoId; name: string }) {
       setErrorMessage("");
 
       try {
-        const response = await fetchCryptoHistory(id, controller.signal);
+        const response = await fetchCryptoHistory(id, 7, controller.signal);
 
         if (!controller.signal.aborted) {
           setHistory(response);
@@ -111,11 +73,19 @@ function CryptoTrendChart({ id, name }: { id: CryptoId; name: string }) {
     return null;
   }
 
-  const trend = getTrendSummary(history);
+  const trend = getTrendMetrics(history);
 
   return (
     <figure className={`crypto-trend crypto-trend-${trend.direction}`}>
       <figcaption id={titleId}>Seven-day trend</figcaption>
+      <button
+        type="button"
+        className="crypto-detail-link"
+        data-crypto-detail-trigger={id}
+        onClick={onShowDetails}
+      >
+        View details
+      </button>
       <svg
         className="crypto-chart"
         viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
@@ -123,7 +93,10 @@ function CryptoTrendChart({ id, name }: { id: CryptoId; name: string }) {
         role="img"
         aria-labelledby={`${titleId} ${summaryId}`}
       >
-        <path className="crypto-chart-line" d={buildChartPath(history.prices)} />
+        <path
+          className="crypto-chart-line"
+          d={buildChartPath(history.prices, CHART_WIDTH, CHART_HEIGHT)}
+        />
       </svg>
       <p id={summaryId} className="crypto-trend-summary">{trend.summary}</p>
     </figure>

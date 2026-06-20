@@ -2,7 +2,6 @@ import { AVAILABLE_CRYPTOCURRENCIES, DEFAULT_CRYPTO_IDS, } from "../contracts/cr
 import { ProviderError } from "../errors/ProviderError.js";
 const COINGECKO_BASE_URL = "https://api.coingecko.com/api/v3/simple/price";
 const COINGECKO_MARKET_CHART_URL = "https://api.coingecko.com/api/v3/coins";
-const HISTORY_DAYS = 7;
 const MAX_HISTORY_POINTS = 32;
 export function mapCoinGeckoResponse(data, ids = DEFAULT_CRYPTO_IDS) {
     return ids.map((id) => {
@@ -62,7 +61,7 @@ function downsamplePricePoints(points) {
         return points[sourceIndex];
     });
 }
-export function mapCoinGeckoHistory(id, data) {
+export function mapCoinGeckoHistory(id, data, days = 7) {
     const crypto = AVAILABLE_CRYPTOCURRENCIES.find((candidate) => candidate.id === id);
     if (!crypto || !Array.isArray(data.prices)) {
         throw new ProviderError("unavailable", "CoinGecko did not return historical pricing.");
@@ -84,17 +83,17 @@ export function mapCoinGeckoHistory(id, data) {
     }
     return {
         ...crypto,
-        days: HISTORY_DAYS,
+        days,
         prices: downsamplePricePoints(prices),
     };
 }
-export async function getCryptoHistory(apiKey, id) {
+export async function getCryptoHistory(apiKey, id, days = 7) {
     if (!apiKey) {
         throw new ProviderError("not_configured", "CoinGecko API key is not configured.");
     }
     const searchParams = new URLSearchParams({
         vs_currency: "usd",
-        days: String(HISTORY_DAYS),
+        days: String(days),
     });
     try {
         const response = await fetch(`${COINGECKO_MARKET_CHART_URL}/${id}/market_chart?${searchParams.toString()}`, {
@@ -109,7 +108,7 @@ export async function getCryptoHistory(apiKey, id) {
         if (!response.ok) {
             throw new ProviderError("unavailable", "CoinGecko history request failed.");
         }
-        return mapCoinGeckoHistory(id, (await response.json()));
+        return mapCoinGeckoHistory(id, (await response.json()), days);
     }
     catch (error) {
         if (error instanceof ProviderError) {

@@ -12,13 +12,16 @@ const cryptoHistoryCatalog = {
   ripple: { name: "XRP", symbol: "XRP", prices: [0.48, 0.49, 0.5] },
 } as const;
 
-function getCryptoHistory(id: keyof typeof cryptoHistoryCatalog) {
+function getCryptoHistory(
+  id: keyof typeof cryptoHistoryCatalog,
+  days: 7 | 30 | 90 = 7,
+) {
   const asset = cryptoHistoryCatalog[id];
   return {
     id,
     name: asset.name,
     symbol: asset.symbol,
-    days: 7,
+    days,
     prices: asset.prices.map((priceUsd, index) => ({ timestamp: index + 1, priceUsd })),
   };
 }
@@ -54,8 +57,10 @@ async function mockDashboardApis(page: Page) {
     }),
   );
   await page.route(cryptoHistoryApiPattern, (route) => {
-    const id = new URL(route.request().url()).searchParams.get("id") as keyof typeof cryptoHistoryCatalog;
-    return route.fulfill({ json: getCryptoHistory(id) });
+    const searchParams = new URL(route.request().url()).searchParams;
+    const id = searchParams.get("id") as keyof typeof cryptoHistoryCatalog;
+    const days = Number(searchParams.get("days")) as 7 | 30 | 90;
+    return route.fulfill({ json: getCryptoHistory(id, days) });
   });
   await page.route(/\/api\/crypto(?:\?.*)?$/, (route) => {
     const catalog = {
@@ -269,4 +274,38 @@ test("customizes widget visibility and order with the keyboard", async ({ page }
     "Crypto market",
     "Latest headlines",
   ]);
+});
+
+test("opens a shareable crypto detail view and changes its range", async ({ page }) => {
+  const crypto = page.getByRole("region", { name: "Crypto market" });
+  const bitcoin = crypto.getByRole("listitem").filter({ hasText: "Bitcoin" });
+  const detailsButton = bitcoin.getByRole("button", { name: "View details" });
+
+  await detailsButton.click();
+  await expect(crypto.getByRole("heading", { name: "Bitcoin (BTC)" })).toBeVisible();
+  await expect(page).toHaveURL(/\?crypto=bitcoin&range=7$/);
+  await expect(crypto.getByText("Average")).toBeVisible();
+
+  await crypto.getByRole("button", { name: "30D" }).click();
+  await expect(crypto.getByRole("button", { name: "30D" })).toHaveAttribute("aria-pressed", "true");
+  await expect(crypto.getByText(/Bitcoin rose 12.50% over 30 days/)).toBeVisible();
+  await expect(page).toHaveURL(/\?crypto=bitcoin&range=30$/);
+  const pageWidth = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+  expect(pageWidth.scrollWidth).toBeLessThanOrEqual(pageWidth.clientWidth);
+
+  await page.reload();
+  await expect(crypto.getByRole("heading", { name: "Bitcoin (BTC)" })).toBeVisible();
+  await expect(crypto.getByRole("button", { name: "30D" })).toHaveAttribute("aria-pressed", "true");
+
+  await crypto.getByRole("button", { name: "Close details" }).click();
+  await expect(crypto.getByRole("heading", { name: "Bitcoin (BTC)" })).toHaveCount(0);
+  await expect(detailsButton).toBeFocused();
+  await expect(page).toHaveURL(/\/$/);
+
+  await page.goto("/?crypto=dogecoin&range=90");
+  await expect(crypto.getByRole("heading", { name: "Dogecoin (DOGE)" })).toBeVisible();
+  await expect(crypto.getByRole("button", { name: "90D" })).toHaveAttribute("aria-pressed", "true");
 });

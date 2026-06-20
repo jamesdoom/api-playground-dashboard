@@ -17,7 +17,10 @@ const cryptoResponse = {
   ],
 };
 
-function historyResponse(id: "bitcoin" | "ethereum" | "solana" | "dogecoin") {
+function historyResponse(
+  id: "bitcoin" | "ethereum" | "solana" | "dogecoin",
+  days: 7 | 30 | 90 = 7,
+) {
   const asset = {
     bitcoin: { name: "Bitcoin", symbol: "BTC", prices: [60000, 62000, 67500] },
     ethereum: { name: "Ethereum", symbol: "ETH", prices: [3700, 3600, 3500] },
@@ -29,7 +32,7 @@ function historyResponse(id: "bitcoin" | "ethereum" | "solana" | "dogecoin") {
     id,
     name: asset.name,
     symbol: asset.symbol,
-    days: 7,
+    days,
     prices: asset.prices.map((priceUsd, index) => ({ timestamp: index + 1, priceUsd })),
   };
 }
@@ -148,5 +151,41 @@ describe("CryptoWidget", () => {
     fireEvent.click(screen.getByRole("button", { name: "Retry trend" }));
 
     expect(await screen.findByText(/Bitcoin rose 12.50% over seven days/)).toBeInTheDocument();
+  });
+
+  it("opens shareable details, changes range, and restores focus when closed", async () => {
+    const fetchMock = vi.fn((input: string | URL | Request) => {
+      const url = String(input);
+
+      if (!url.includes("/crypto/history")) {
+        return Promise.resolve(jsonResponse({ assets: [cryptoResponse.assets[0]] }));
+      }
+
+      const searchParams = new URL(url, "http://localhost").searchParams;
+      const days = Number(searchParams.get("days")) as 7 | 30 | 90;
+      return Promise.resolve(jsonResponse(historyResponse("bitcoin", days)));
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<CryptoWidget />);
+    const detailsButton = await screen.findByRole("button", { name: "View details" });
+    fireEvent.click(detailsButton);
+
+    expect(await screen.findByRole("heading", { name: "Bitcoin (BTC)" })).toBeInTheDocument();
+    expect(window.location.search).toBe("?crypto=bitcoin&range=7");
+    expect(screen.getByText("Average")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "30D" }));
+
+    expect(await screen.findByText(/Bitcoin rose 12.50% over 30 days/)).toBeInTheDocument();
+    expect(window.location.search).toBe("?crypto=bitcoin&range=30");
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/crypto/history?id=bitcoin&days=30",
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Close details" }));
+    await waitFor(() => expect(detailsButton).toHaveFocus());
+    expect(window.location.search).toBe("");
   });
 });

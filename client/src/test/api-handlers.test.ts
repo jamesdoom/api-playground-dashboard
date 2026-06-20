@@ -96,6 +96,17 @@ describe("Vercel API handlers", () => {
     expect(result.body).toEqual({ message: "Please select a supported crypto asset." });
   });
 
+  it("rejects an unsupported crypto history range", async () => {
+    const result = createApiResponse();
+    await cryptoHistoryHandler(
+      { method: "GET", query: { id: "bitcoin", days: "14" } },
+      result.response,
+    );
+
+    expect(result.statusCode).toBe(400);
+    expect(result.body).toEqual({ message: "Please select a 7, 30, or 90-day history range." });
+  });
+
   it("returns mapped weather data with the CDN cache policy", async () => {
     vi.stubGlobal(
       "fetch",
@@ -194,14 +205,17 @@ describe("Vercel API handlers", () => {
     );
     const result = createApiResponse();
 
-    await cryptoHistoryHandler({ method: "GET", query: { id: "bitcoin" } }, result.response);
+    await cryptoHistoryHandler(
+      { method: "GET", query: { id: "bitcoin", days: "30" } },
+      result.response,
+    );
 
     expect(result.statusCode).toBe(200);
     expect(result.body).toEqual({
       id: "bitcoin",
       name: "Bitcoin",
       symbol: "BTC",
-      days: 7,
+      days: 30,
       prices: [
         { timestamp: 1, priceUsd: 60000 },
         { timestamp: 2, priceUsd: 62000 },
@@ -209,6 +223,10 @@ describe("Vercel API handlers", () => {
       ],
     });
     expect(result.headers.get("Cache-Control")).toContain("s-maxage=900");
+    expect(vi.mocked(fetch)).toHaveBeenCalledWith(
+      expect.stringContaining("days=30"),
+      expect.any(Object),
+    );
   });
 
   it("returns mapped stock quotes with the CDN cache policy", async () => {

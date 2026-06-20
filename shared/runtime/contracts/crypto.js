@@ -8,8 +8,19 @@ export const AVAILABLE_CRYPTOCURRENCIES = [
 ];
 export const DEFAULT_CRYPTO_IDS = ["bitcoin", "ethereum", "solana"];
 export const MAX_WATCHLIST_ITEMS = 5;
+export const CRYPTO_HISTORY_RANGES = [7, 30, 90];
 export function isCryptoId(value) {
     return AVAILABLE_CRYPTOCURRENCIES.some((crypto) => crypto.id === value);
+}
+export function isCryptoHistoryDays(value) {
+    return CRYPTO_HISTORY_RANGES.some((days) => days === value);
+}
+export function parseCryptoHistoryDays(value) {
+    if (value === undefined) {
+        return 7;
+    }
+    const days = Number(value);
+    return Number.isInteger(days) && isCryptoHistoryDays(days) ? days : null;
 }
 export function parseCryptoIds(value) {
     if (value === undefined) {

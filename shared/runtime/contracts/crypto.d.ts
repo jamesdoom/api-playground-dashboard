@@ -26,6 +26,8 @@ export declare const AVAILABLE_CRYPTOCURRENCIES: readonly [{
 export type CryptoId = (typeof AVAILABLE_CRYPTOCURRENCIES)[number]["id"];
 export declare const DEFAULT_CRYPTO_IDS: readonly CryptoId[];
 export declare const MAX_WATCHLIST_ITEMS = 5;
+export declare const CRYPTO_HISTORY_RANGES: readonly [7, 30, 90];
+export type CryptoHistoryDays = (typeof CRYPTO_HISTORY_RANGES)[number];
 export interface CryptoAsset {
     id: CryptoId;
     name: string;
@@ -44,7 +46,7 @@ export interface CryptoHistoryResponse {
     id: CryptoId;
     name: string;
     symbol: string;
-    days: 7;
+    days: CryptoHistoryDays;
     prices: CryptoPricePoint[];
 }
 export interface CoinGeckoMarketChartResponse {
@@ -55,4 +57,6 @@ export type CoinGeckoSimplePriceResponse = Record<string, {
     usd_24h_change?: number;
 }>;
 export declare function isCryptoId(value: string): value is CryptoId;
+export declare function isCryptoHistoryDays(value: number): value is CryptoHistoryDays;
+export declare function parseCryptoHistoryDays(value: string | undefined): CryptoHistoryDays | null;
 export declare function parseCryptoIds(value: string | undefined): CryptoId[] | null;

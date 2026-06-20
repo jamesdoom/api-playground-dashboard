@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseCryptoIds } from "../../../shared/contracts/crypto.ts";
+import { parseCryptoHistoryDays, parseCryptoIds } from "../../../shared/contracts/crypto.ts";
 import { parseNewsCategory } from "../../../shared/contracts/news.ts";
 import { AVAILABLE_STOCKS, parseStockSymbols } from "../../../shared/contracts/stocks.ts";
 import { mapCoinGeckoHistory, mapCoinGeckoResponse } from "../../../shared/services/cryptoService.ts";
@@ -26,6 +26,13 @@ describe("shared provider transformations", () => {
     expect(parseStockSymbols("aapl,TSLA,aapl")).toEqual(["AAPL", "TSLA"]);
     expect(parseStockSymbols("AAPL,UNKNOWN")).toBeNull();
     expect(parseStockSymbols("AAPL,MSFT,NVDA,GOOGL,AMZN,TSLA")).toBeNull();
+  });
+
+  it("accepts only supported crypto history ranges", () => {
+    expect(parseCryptoHistoryDays(undefined)).toBe(7);
+    expect(parseCryptoHistoryDays("30")).toBe(30);
+    expect(parseCryptoHistoryDays("90")).toBe(90);
+    expect(parseCryptoHistoryDays("14")).toBeNull();
   });
 
   it("maps CoinGecko prices into the dashboard contract", () => {

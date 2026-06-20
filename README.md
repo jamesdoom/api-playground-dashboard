@@ -11,6 +11,7 @@ A responsive full-stack dashboard that brings several third-party APIs into one 
 - Search current weather conditions by city with OpenWeather
 - Track Bitcoin, Ethereum, and Solana prices and 24-hour movement with CoinGecko
 - Compare seven-day crypto price trends with lightweight, accessible SVG charts
+- Open shareable crypto detail views with 7, 30, and 90-day ranges and summary statistics
 - Follow Apple, Microsoft, and Nvidia prices and daily movement with Finnhub
 - Customize crypto and stock watchlists from approved catalogs with a five-item limit
 - Show, hide, and reorder dashboard widgets with keyboard-accessible controls
@@ -129,7 +130,7 @@ Vite serves the dashboard at `http://localhost:5173` and proxies `/api` requests
 | `GET` | `/api/health` | Reports API availability |
 | `GET` | `/api/weather?city=Chicago` | Returns normalized current conditions |
 | `GET` | `/api/crypto?ids=bitcoin,dogecoin` | Returns up to five approved USD prices and 24-hour changes |
-| `GET` | `/api/crypto/history?id=bitcoin` | Returns a cached, normalized seven-day USD price series |
+| `GET` | `/api/crypto/history?id=bitcoin&days=30` | Returns a cached, normalized 7, 30, or 90-day USD price series |
 | `GET` | `/api/stocks?symbols=AAPL,TSLA` | Returns up to five approved USD quotes and daily changes |
 | `GET` | `/api/news?category=technology` | Returns six recent headlines |
 

@@ -1,5 +1,9 @@
 import { Router } from "express";
-import { isCryptoId, parseCryptoIds } from "../../../shared/contracts/crypto.ts";
+import {
+  isCryptoId,
+  parseCryptoHistoryDays,
+  parseCryptoIds,
+} from "../../../shared/contracts/crypto.ts";
 import {
   DASHBOARD_CACHE_CONTROL,
   HISTORICAL_PRICE_CACHE_CONTROL,
@@ -12,14 +16,21 @@ const router = Router();
 router.get("/history", async (req, res) => {
   const queryId = Array.isArray(req.query.id) ? req.query.id[0] : req.query.id;
   const id = typeof queryId === "string" ? queryId.trim().toLowerCase() : "";
+  const queryDays = Array.isArray(req.query.days) ? req.query.days[0] : req.query.days;
+  const days = parseCryptoHistoryDays(typeof queryDays === "string" ? queryDays : undefined);
 
   if (!isCryptoId(id)) {
     res.status(400).json({ message: "Please select a supported crypto asset." });
     return;
   }
 
+  if (days === null) {
+    res.status(400).json({ message: "Please select a 7, 30, or 90-day history range." });
+    return;
+  }
+
   try {
-    const history = await getCryptoHistory(id);
+    const history = await getCryptoHistory(id, days);
     res.setHeader("Cache-Control", HISTORICAL_PRICE_CACHE_CONTROL);
     res.json(history);
   } catch (error) {

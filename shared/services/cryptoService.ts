@@ -5,6 +5,7 @@ import {
   type CoinGeckoSimplePriceResponse,
   type CryptoAsset,
   type CryptoHistoryResponse,
+  type CryptoHistoryDays,
   type CryptoId,
   type CryptoPricePoint,
 } from "../contracts/crypto.ts";
@@ -12,7 +13,6 @@ import { ProviderError, type ApiErrorDetails } from "../errors/ProviderError.ts"
 
 const COINGECKO_BASE_URL = "https://api.coingecko.com/api/v3/simple/price";
 const COINGECKO_MARKET_CHART_URL = "https://api.coingecko.com/api/v3/coins";
-const HISTORY_DAYS = 7 as const;
 const MAX_HISTORY_POINTS = 32;
 
 export function mapCoinGeckoResponse(
@@ -95,6 +95,7 @@ function downsamplePricePoints(points: CryptoPricePoint[]): CryptoPricePoint[] {
 export function mapCoinGeckoHistory(
   id: CryptoId,
   data: CoinGeckoMarketChartResponse,
+  days: CryptoHistoryDays = 7,
 ): CryptoHistoryResponse {
   const crypto = AVAILABLE_CRYPTOCURRENCIES.find((candidate) => candidate.id === id);
 
@@ -124,7 +125,7 @@ export function mapCoinGeckoHistory(
 
   return {
     ...crypto,
-    days: HISTORY_DAYS,
+    days,
     prices: downsamplePricePoints(prices),
   };
 }
@@ -132,6 +133,7 @@ export function mapCoinGeckoHistory(
 export async function getCryptoHistory(
   apiKey: string | undefined,
   id: CryptoId,
+  days: CryptoHistoryDays = 7,
 ): Promise<CryptoHistoryResponse> {
   if (!apiKey) {
     throw new ProviderError("not_configured", "CoinGecko API key is not configured.");
@@ -139,7 +141,7 @@ export async function getCryptoHistory(
 
   const searchParams = new URLSearchParams({
     vs_currency: "usd",
-    days: String(HISTORY_DAYS),
+    days: String(days),
   });
 
   try {
@@ -161,7 +163,7 @@ export async function getCryptoHistory(
       throw new ProviderError("unavailable", "CoinGecko history request failed.");
     }
 
-    return mapCoinGeckoHistory(id, (await response.json()) as CoinGeckoMarketChartResponse);
+    return mapCoinGeckoHistory(id, (await response.json()) as CoinGeckoMarketChartResponse, days);
   } catch (error) {
     if (error instanceof ProviderError) {
       throw error;

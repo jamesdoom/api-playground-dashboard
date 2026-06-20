@@ -11,6 +11,8 @@ export type CryptoId = (typeof AVAILABLE_CRYPTOCURRENCIES)[number]["id"];
 
 export const DEFAULT_CRYPTO_IDS: readonly CryptoId[] = ["bitcoin", "ethereum", "solana"];
 export const MAX_WATCHLIST_ITEMS = 5;
+export const CRYPTO_HISTORY_RANGES = [7, 30, 90] as const;
+export type CryptoHistoryDays = (typeof CRYPTO_HISTORY_RANGES)[number];
 
 export interface CryptoAsset {
   id: CryptoId;
@@ -33,7 +35,7 @@ export interface CryptoHistoryResponse {
   id: CryptoId;
   name: string;
   symbol: string;
-  days: 7;
+  days: CryptoHistoryDays;
   prices: CryptoPricePoint[];
 }
 
@@ -51,6 +53,19 @@ export type CoinGeckoSimplePriceResponse = Record<
 
 export function isCryptoId(value: string): value is CryptoId {
   return AVAILABLE_CRYPTOCURRENCIES.some((crypto) => crypto.id === value);
+}
+
+export function isCryptoHistoryDays(value: number): value is CryptoHistoryDays {
+  return CRYPTO_HISTORY_RANGES.some((days) => days === value);
+}
+
+export function parseCryptoHistoryDays(value: string | undefined): CryptoHistoryDays | null {
+  if (value === undefined) {
+    return 7;
+  }
+
+  const days = Number(value);
+  return Number.isInteger(days) && isCryptoHistoryDays(days) ? days : null;
 }
 
 export function parseCryptoIds(value: string | undefined): CryptoId[] | null {

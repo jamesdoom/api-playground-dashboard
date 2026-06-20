@@ -5,9 +5,12 @@ import {
   DEFAULT_CRYPTO_IDS,
   MAX_WATCHLIST_ITEMS,
   isCryptoId,
+  parseCryptoHistoryDays,
   type CryptoAsset,
+  type CryptoHistoryDays,
   type CryptoId,
 } from "../types/crypto";
+import CryptoDetailPanel from "./CryptoDetailPanel";
 import CryptoTrendChart from "./CryptoTrendChart";
 
 const CRYPTO_STORAGE_KEY = "dashboard-crypto-watchlist";
@@ -15,6 +18,17 @@ const updatedTimeFormatter = new Intl.DateTimeFormat("en-US", {
   hour: "numeric",
   minute: "2-digit",
 });
+
+function getDetailStateFromUrl(): { id: CryptoId | null; days: CryptoHistoryDays } {
+  const searchParams = new URL(window.location.href).searchParams;
+  const id = searchParams.get("crypto")?.trim().toLowerCase() ?? "";
+  const days = parseCryptoHistoryDays(searchParams.get("range") ?? undefined);
+
+  return {
+    id: isCryptoId(id) ? id : null,
+    days: days ?? 7,
+  };
+}
 
 function getStoredCryptoIds(): CryptoId[] {
   try {
@@ -87,6 +101,7 @@ function CryptoWidget() {
   const [isLoading, setIsLoading] = useState(selectedIds.length > 0);
   const [refreshCount, setRefreshCount] = useState(0);
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
+  const [detailState, setDetailState] = useState(getDetailStateFromUrl);
 
   const availableOptions = AVAILABLE_CRYPTOCURRENCIES.filter(
     (crypto) => !selectedIds.includes(crypto.id),
@@ -133,6 +148,57 @@ function CryptoWidget() {
     return () => controller.abort();
   }, [selectedIds, refreshCount]);
 
+  useEffect(() => {
+    function handlePopState() {
+      setDetailState(getDetailStateFromUrl());
+    }
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  function updateDetailUrl(
+    id: CryptoId | null,
+    days: CryptoHistoryDays,
+    method: "pushState" | "replaceState",
+  ) {
+    const url = new URL(window.location.href);
+
+    if (id) {
+      url.searchParams.set("crypto", id);
+      url.searchParams.set("range", String(days));
+    } else {
+      url.searchParams.delete("crypto");
+      url.searchParams.delete("range");
+    }
+
+    window.history[method]({}, "", url);
+  }
+
+  function showDetails(id: CryptoId) {
+    const nextState = { id, days: detailState.id === id ? detailState.days : 7 as const };
+    setDetailState(nextState);
+    updateDetailUrl(nextState.id, nextState.days, "pushState");
+  }
+
+  function closeDetails() {
+    const previousId = detailState.id;
+    setDetailState({ id: null, days: 7 });
+    updateDetailUrl(null, 7, "replaceState");
+
+    window.requestAnimationFrame(() => {
+      const trigger = previousId
+        ? document.querySelector<HTMLElement>(`[data-crypto-detail-trigger="${previousId}"]`)
+        : null;
+      (trigger ?? document.getElementById("crypto-widget-title"))?.focus();
+    });
+  }
+
+  function changeDetailRange(days: CryptoHistoryDays) {
+    setDetailState((current) => ({ ...current, days }));
+    updateDetailUrl(detailState.id, days, "replaceState");
+  }
+
   function updateWatchlist(ids: CryptoId[]) {
     setSelectedIds(ids);
     setAssets((current) => current.filter((asset) => ids.includes(asset.id)));
@@ -166,7 +232,7 @@ function CryptoWidget() {
       <div className="widget-header">
         <div>
           <p className="eyebrow">CoinGecko API</p>
-          <h2 id="crypto-widget-title">Crypto market</h2>
+          <h2 id="crypto-widget-title" tabIndex={-1}>Crypto market</h2>
         </div>
         <span className="crypto-currency">USD</span>
       </div>
@@ -251,7 +317,11 @@ function CryptoWidget() {
                   >
                     &times;
                   </button>
-                  <CryptoTrendChart id={asset.id} name={asset.name} />
+                  <CryptoTrendChart
+                    id={asset.id}
+                    name={asset.name}
+                    onShowDetails={() => showDetails(asset.id)}
+                  />
                 </li>
               );
             })}
@@ -269,6 +339,15 @@ function CryptoWidget() {
             </button>
           </div>
         </>
+      ) : null}
+
+      {detailState.id ? (
+        <CryptoDetailPanel
+          id={detailState.id}
+          days={detailState.days}
+          onClose={closeDetails}
+          onDaysChange={changeDetailRange}
+        />
       ) : null}
     </section>
   );
