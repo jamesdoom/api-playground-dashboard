@@ -13,9 +13,10 @@ A responsive full-stack dashboard that brings several third-party APIs into one 
 - Compare seven-day crypto price trends with lightweight, accessible SVG charts
 - Follow Apple, Microsoft, and Nvidia prices and daily movement with Finnhub
 - Customize crypto and stock watchlists from approved catalogs with a five-item limit
+- Show, hide, and reorder dashboard widgets with keyboard-accessible controls
 - Browse recent Guardian headlines by category
 - Refresh controls, loading skeletons, retry actions, and last-updated timestamps
-- Persistent city, category, and market watchlist preferences using `localStorage`
+- Persistent city, category, market watchlist, and dashboard layout preferences using `localStorage`
 - Responsive layouts and accessible loading and error announcements
 - Five-minute quote caching and fifteen-minute historical-price caching with stale-while-revalidate support
 - Shared provider services used by both Express and Vercel serverless handlers
@@ -161,4 +162,3 @@ The repository is configured for Vercel. The React client builds to `client/dist
 
 - Evaluate a suitable stock-history provider or Finnhub plan for stock trend charts
 - Add more API categories such as movies, sports, and AI
-- Add drag-and-drop widget customization

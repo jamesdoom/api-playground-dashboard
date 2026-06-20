@@ -235,3 +235,38 @@ test("announces crypto trends and recovers a failed history request", async ({ p
   await crypto.getByRole("button", { name: "Retry trend" }).click();
   await expect(crypto.getByText(/Bitcoin rose 12.50% over seven days/)).toBeVisible();
 });
+
+test("customizes widget visibility and order with the keyboard", async ({ page }) => {
+  await page.getByRole("button", { name: "Customize dashboard" }).click();
+
+  const showWeather = page.getByRole("checkbox", { name: "Show Weather" });
+  await showWeather.focus();
+  await page.keyboard.press("Space");
+  await expect(page.getByRole("region", { name: "Weather" })).toHaveCount(0);
+
+  const moveCryptoUp = page.getByRole("button", { name: "Move Crypto market up" });
+  await moveCryptoUp.focus();
+  await page.keyboard.press("Enter");
+
+  await expect(page.getByRole("status").filter({ hasText: "Crypto market moved up" })).toBeAttached();
+  await page.reload();
+
+  await expect(page.getByRole("region", { name: "Weather" })).toHaveCount(0);
+  await expect(page.locator(".widget h2")).toHaveText([
+    "Crypto market",
+    "Stock watchlist",
+    "Latest headlines",
+  ]);
+
+  await page.getByRole("button", { name: "Customize dashboard" }).click();
+  await expect(page.getByRole("checkbox", { name: "Show Weather" })).not.toBeChecked();
+  await page.getByRole("button", { name: "Restore defaults" }).click();
+
+  await expect(page.getByRole("region", { name: "Weather" })).toBeVisible();
+  await expect(page.locator(".widget h2")).toHaveText([
+    "Weather",
+    "Stock watchlist",
+    "Crypto market",
+    "Latest headlines",
+  ]);
+});
