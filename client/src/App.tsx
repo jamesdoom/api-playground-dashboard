@@ -88,6 +88,11 @@ function App() {
   }
 
   const visibleWidgetIds = preferences.order.filter((id) => !preferences.hidden.includes(id));
+  const serverStatusTone = serverStatus === "Checking server..."
+    ? "pending"
+    : serverStatus === "Server connection failed"
+      ? "error"
+      : "online";
 
   return (
     <main className="dashboard">
@@ -95,9 +100,10 @@ function App() {
         <div>
           <p className="eyebrow">Portfolio Project</p>
           <h1>API Playground Dashboard</h1>
+          <p className="dashboard-intro">Live signals from weather, markets, and the wider world.</p>
         </div>
         <div className="dashboard-header-actions">
-          <p className="server-status">{serverStatus}</p>
+          <p className={`server-status server-status-${serverStatusTone}`}>{serverStatus}</p>
           <button
             type="button"
             className="secondary-button customize-dashboard-button"
