@@ -9,8 +9,7 @@ import {
   type StockSymbol,
 } from "../types/stocks";
 
-const STOCKS_STORAGE_KEY = "dashboard-stocks-watchlist";
-const PREVIOUS_DEFAULT_STOCK_SYMBOLS = ["AAPL", "MSFT", "NVDA"];
+const STOCKS_STORAGE_KEY = "dashboard-stocks-watchlist-v2";
 const priceFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
@@ -38,13 +37,6 @@ function getStoredStockSymbols(): StockSymbol[] {
     const symbols = [...new Set(parsed.filter((value): value is StockSymbol => (
       typeof value === "string" && isStockSymbol(value)
     )))].slice(0, MAX_STOCK_WATCHLIST_ITEMS);
-
-    if (
-      symbols.length === PREVIOUS_DEFAULT_STOCK_SYMBOLS.length
-      && symbols.every((symbol, index) => symbol === PREVIOUS_DEFAULT_STOCK_SYMBOLS[index])
-    ) {
-      return [...DEFAULT_STOCK_SYMBOLS];
-    }
 
     return symbols;
   } catch {

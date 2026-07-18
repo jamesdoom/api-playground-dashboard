@@ -19,6 +19,10 @@ const stocksResponse = {
 
 describe("StocksWidget", () => {
   it("shows loading, current quotes, movement, and refresh controls", async () => {
+    window.localStorage.setItem(
+      "dashboard-stocks-watchlist",
+      JSON.stringify(["AAPL", "MSFT", "NVDA", "AMZN"]),
+    );
     let resolveRequest!: (response: Response) => void;
     const request = new Promise<Response>((resolve) => {
       resolveRequest = resolve;
@@ -55,7 +59,7 @@ describe("StocksWidget", () => {
 
     expect(await screen.findByText("Add a company to start your stock watchlist.")).toBeInTheDocument();
     await waitFor(() => {
-      expect(window.localStorage.getItem("dashboard-stocks-watchlist")).toBe("[]");
+      expect(window.localStorage.getItem("dashboard-stocks-watchlist-v2")).toBe("[]");
     });
   });
 
