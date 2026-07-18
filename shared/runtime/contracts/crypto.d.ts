@@ -22,6 +22,10 @@ export declare const AVAILABLE_CRYPTOCURRENCIES: readonly [{
     readonly id: "ripple";
     readonly name: "XRP";
     readonly symbol: "XRP";
+}, {
+    readonly id: "decentraland";
+    readonly name: "Decentraland";
+    readonly symbol: "MANA";
 }];
 export type CryptoId = (typeof AVAILABLE_CRYPTOCURRENCIES)[number]["id"];
 export declare const DEFAULT_CRYPTO_IDS: readonly CryptoId[];

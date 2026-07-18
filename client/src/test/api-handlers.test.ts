@@ -211,6 +211,7 @@ describe("Vercel API handlers", () => {
             bitcoin: { usd: 67500, usd_24h_change: 2.5 },
             ethereum: { usd: 3500, usd_24h_change: -1.25 },
             solana: { usd: 145, usd_24h_change: 0.5 },
+            decentraland: { usd: 0.42, usd_24h_change: 1.1 },
           }),
           { status: 200, headers: { "Content-Type": "application/json" } },
         ),
@@ -226,6 +227,7 @@ describe("Vercel API handlers", () => {
         expect.objectContaining({ id: "bitcoin", symbol: "BTC", priceUsd: 67500 }),
         expect.objectContaining({ id: "ethereum", symbol: "ETH", priceUsd: 3500 }),
         expect.objectContaining({ id: "solana", symbol: "SOL", priceUsd: 145 }),
+        expect.objectContaining({ id: "decentraland", symbol: "MANA", priceUsd: 0.42 }),
       ],
     });
     expect(result.headers.get("Cache-Control")).toContain("s-maxage=300");

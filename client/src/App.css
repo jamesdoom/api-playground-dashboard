@@ -785,6 +785,10 @@
   background: #334155;
 }
 
+.crypto-symbol-decentraland {
+  background: linear-gradient(145deg, #e15f78, #9f3158);
+}
+
 .crypto-name,
 .crypto-value {
   display: grid;

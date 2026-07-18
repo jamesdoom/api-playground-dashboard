@@ -14,11 +14,12 @@ const cryptoResponse = {
     { id: "bitcoin", name: "Bitcoin", symbol: "BTC", priceUsd: 67500, change24h: 2.5 },
     { id: "ethereum", name: "Ethereum", symbol: "ETH", priceUsd: 3500, change24h: -1.25 },
     { id: "solana", name: "Solana", symbol: "SOL", priceUsd: 145, change24h: 0 },
+    { id: "decentraland", name: "Decentraland", symbol: "MANA", priceUsd: 0.42, change24h: 1.1 },
   ],
 };
 
 function historyResponse(
-  id: "bitcoin" | "ethereum" | "solana" | "dogecoin",
+  id: "bitcoin" | "ethereum" | "solana" | "dogecoin" | "decentraland",
   days: 7 | 30 | 90 = 7,
 ) {
   const asset = {
@@ -26,6 +27,7 @@ function historyResponse(
     ethereum: { name: "Ethereum", symbol: "ETH", prices: [3700, 3600, 3500] },
     solana: { name: "Solana", symbol: "SOL", prices: [145, 145, 145] },
     dogecoin: { name: "Dogecoin", symbol: "DOGE", prices: [0.14, 0.15, 0.15] },
+    decentraland: { name: "Decentraland", symbol: "MANA", prices: [0.4, 0.41, 0.42] },
   }[id];
 
   return {
@@ -47,7 +49,8 @@ describe("CryptoWidget", () => {
       const url = String(input);
 
       if (url.includes("/crypto/history")) {
-        const id = new URL(url, "http://localhost").searchParams.get("id") as "bitcoin" | "ethereum" | "solana";
+        const id = new URL(url, "http://localhost").searchParams.get("id") as
+          "bitcoin" | "ethereum" | "solana" | "decentraland";
         return Promise.resolve(jsonResponse(historyResponse(id)));
       }
 
@@ -64,6 +67,12 @@ describe("CryptoWidget", () => {
     expect(await screen.findByText("Bitcoin")).toBeInTheDocument();
     expect(screen.getByText("$67,500.00")).toBeInTheDocument();
     expect(screen.getByLabelText("Bitcoin 24-hour change +2.50%")).toBeInTheDocument();
+    expect(screen.getByText("Ethereum")).toBeInTheDocument();
+    expect(screen.getByText("Decentraland")).toBeInTheDocument();
+    expect(fetch).toHaveBeenCalledWith(
+      "/api/crypto?ids=bitcoin%2Cethereum%2Csolana%2Cdecentraland",
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
     expect(screen.getByText(/^Updated /)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Refresh" })).toBeEnabled();
     expect(await screen.findByText(/Bitcoin rose 12.50% over seven days/)).toBeInTheDocument();
@@ -71,7 +80,7 @@ describe("CryptoWidget", () => {
   });
 
   it("restores an empty watchlist and persists an added asset", async () => {
-    window.localStorage.setItem("dashboard-crypto-watchlist", "[]");
+    window.localStorage.setItem("dashboard-crypto-watchlist-v2", "[]");
     const fetchMock = vi.fn().mockResolvedValue(
       jsonResponse({
         assets: [
@@ -91,7 +100,7 @@ describe("CryptoWidget", () => {
 
     expect(await screen.findByText("Dogecoin")).toBeInTheDocument();
     await waitFor(() => {
-      expect(window.localStorage.getItem("dashboard-crypto-watchlist")).toBe('["dogecoin"]');
+      expect(window.localStorage.getItem("dashboard-crypto-watchlist-v2")).toBe('["dogecoin"]');
     });
     expect(fetchMock).toHaveBeenCalledWith(
       "/api/crypto?ids=dogecoin",
@@ -101,7 +110,7 @@ describe("CryptoWidget", () => {
 
   it("disables additions at the five-asset limit", () => {
     window.localStorage.setItem(
-      "dashboard-crypto-watchlist",
+      "dashboard-crypto-watchlist-v2",
       '["bitcoin","ethereum","solana","dogecoin","cardano"]',
     );
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse(cryptoResponse)));

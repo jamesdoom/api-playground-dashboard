@@ -13,7 +13,7 @@ import {
 import CryptoDetailPanel from "./CryptoDetailPanel";
 import CryptoTrendChart from "./CryptoTrendChart";
 
-const CRYPTO_STORAGE_KEY = "dashboard-crypto-watchlist";
+const CRYPTO_STORAGE_KEY = "dashboard-crypto-watchlist-v2";
 const updatedTimeFormatter = new Intl.DateTimeFormat("en-US", {
   hour: "numeric",
   minute: "2-digit",

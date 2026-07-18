@@ -5,11 +5,17 @@ export const AVAILABLE_CRYPTOCURRENCIES = [
   { id: "dogecoin", name: "Dogecoin", symbol: "DOGE" },
   { id: "cardano", name: "Cardano", symbol: "ADA" },
   { id: "ripple", name: "XRP", symbol: "XRP" },
+  { id: "decentraland", name: "Decentraland", symbol: "MANA" },
 ] as const;
 
 export type CryptoId = (typeof AVAILABLE_CRYPTOCURRENCIES)[number]["id"];
 
-export const DEFAULT_CRYPTO_IDS: readonly CryptoId[] = ["bitcoin", "ethereum", "solana"];
+export const DEFAULT_CRYPTO_IDS: readonly CryptoId[] = [
+  "bitcoin",
+  "ethereum",
+  "solana",
+  "decentraland",
+];
 export const MAX_WATCHLIST_ITEMS = 5;
 export const CRYPTO_HISTORY_RANGES = [7, 30, 90] as const;
 export type CryptoHistoryDays = (typeof CRYPTO_HISTORY_RANGES)[number];

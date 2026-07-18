@@ -10,6 +10,7 @@ const cryptoHistoryCatalog = {
   dogecoin: { name: "Dogecoin", symbol: "DOGE", prices: [0.14, 0.145, 0.15] },
   cardano: { name: "Cardano", symbol: "ADA", prices: [0.62, 0.61, 0.6] },
   ripple: { name: "XRP", symbol: "XRP", prices: [0.48, 0.49, 0.5] },
+  decentraland: { name: "Decentraland", symbol: "MANA", prices: [0.4, 0.41, 0.42] },
 } as const;
 
 function getCryptoHistory(
@@ -91,6 +92,7 @@ async function mockDashboardApis(page: Page) {
       dogecoin: { id: "dogecoin", name: "Dogecoin", symbol: "DOGE", priceUsd: 0.15, change24h: 1.2 },
       cardano: { id: "cardano", name: "Cardano", symbol: "ADA", priceUsd: 0.6, change24h: -0.4 },
       ripple: { id: "ripple", name: "XRP", symbol: "XRP", priceUsd: 0.5, change24h: 0.8 },
+      decentraland: { id: "decentraland", name: "Decentraland", symbol: "MANA", priceUsd: 0.42, change24h: 1.1 },
     } as const;
     const ids = new URL(route.request().url()).searchParams.get("ids")?.split(",") ?? [];
     const assets = ids.flatMap((id) => id in catalog ? [catalog[id as keyof typeof catalog]] : []);
