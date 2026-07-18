@@ -12,8 +12,8 @@ function jsonResponse(body: unknown, status = 200): Response {
 const stocksResponse = {
   quotes: [
     { symbol: "AAPL", name: "Apple", priceUsd: 205.5, changePercent: 1.25 },
-    { symbol: "MSFT", name: "Microsoft", priceUsd: 450.25, changePercent: -0.75 },
-    { symbol: "NVDA", name: "Nvidia", priceUsd: 150, changePercent: 0 },
+    { symbol: "FISV", name: "Fiserv", priceUsd: 67.17, changePercent: -0.75 },
+    { symbol: "SOFI", name: "SoFi", priceUsd: 17.32, changePercent: 0 },
   ],
 };
 
@@ -27,6 +27,10 @@ describe("StocksWidget", () => {
 
     render(<StocksWidget />);
     expect(screen.getByRole("status")).toHaveTextContent("Loading current stock prices");
+    expect(fetch).toHaveBeenCalledWith(
+      "/api/stocks?symbols=AAPL%2CFISV%2CSOFI",
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
 
     await act(async () => {
       resolveRequest(jsonResponse(stocksResponse));
@@ -46,8 +50,8 @@ describe("StocksWidget", () => {
     await screen.findByText("Apple");
 
     fireEvent.click(screen.getByRole("button", { name: "Remove Apple" }));
-    fireEvent.click(screen.getByRole("button", { name: "Remove Microsoft" }));
-    fireEvent.click(screen.getByRole("button", { name: "Remove Nvidia" }));
+    fireEvent.click(screen.getByRole("button", { name: "Remove Fiserv" }));
+    fireEvent.click(screen.getByRole("button", { name: "Remove SoFi" }));
 
     expect(await screen.findByText("Add a company to start your stock watchlist.")).toBeInTheDocument();
     await waitFor(() => {

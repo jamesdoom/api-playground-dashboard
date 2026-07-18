@@ -277,13 +277,13 @@ describe("Vercel API handlers", () => {
         }),
       )
       .mockResolvedValueOnce(
-        new Response(JSON.stringify({ c: 450.25, dp: -0.75 }), {
+        new Response(JSON.stringify({ c: 67.17, dp: -0.75 }), {
           status: 200,
           headers: { "Content-Type": "application/json" },
         }),
       )
       .mockResolvedValueOnce(
-        new Response(JSON.stringify({ c: 150, dp: 0.5 }), {
+        new Response(JSON.stringify({ c: 17.32, dp: 3.08 }), {
           status: 200,
           headers: { "Content-Type": "application/json" },
         }),
@@ -297,8 +297,8 @@ describe("Vercel API handlers", () => {
     expect(result.body).toEqual({
       quotes: [
         expect.objectContaining({ symbol: "AAPL", priceUsd: 205.5, changePercent: 1.25 }),
-        expect.objectContaining({ symbol: "MSFT", priceUsd: 450.25, changePercent: -0.75 }),
-        expect.objectContaining({ symbol: "NVDA", priceUsd: 150, changePercent: 0.5 }),
+        expect.objectContaining({ symbol: "FISV", priceUsd: 67.17, changePercent: -0.75 }),
+        expect.objectContaining({ symbol: "SOFI", priceUsd: 17.32, changePercent: 3.08 }),
       ],
     });
     expect(result.headers.get("Cache-Control")).toContain("s-maxage=300");

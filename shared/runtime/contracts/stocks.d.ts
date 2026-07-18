@@ -16,6 +16,12 @@ export declare const AVAILABLE_STOCKS: readonly [{
 }, {
     readonly symbol: "TSLA";
     readonly name: "Tesla";
+}, {
+    readonly symbol: "FISV";
+    readonly name: "Fiserv";
+}, {
+    readonly symbol: "SOFI";
+    readonly name: "SoFi";
 }];
 export type StockSymbol = (typeof AVAILABLE_STOCKS)[number]["symbol"];
 export declare const DEFAULT_STOCK_SYMBOLS: readonly StockSymbol[];

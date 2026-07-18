@@ -14,7 +14,6 @@ A responsive full-stack dashboard that brings several third-party APIs into one 
 - Open shareable crypto detail views with 7, 30, and 90-day ranges and summary statistics
 - Follow Apple, Microsoft, and Nvidia prices and daily movement with Finnhub
 - Customize crypto and stock watchlists from approved catalogs with a five-item limit
-- Show, hide, and reorder dashboard widgets with keyboard-accessible controls
 - Browse recent Guardian headlines by category
 - Refresh controls, loading skeletons, retry actions, and last-updated timestamps
 - Persistent city, category, market watchlist, and dashboard layout preferences using `localStorage`

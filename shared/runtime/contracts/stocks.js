@@ -5,8 +5,10 @@ export const AVAILABLE_STOCKS = [
     { symbol: "GOOGL", name: "Alphabet" },
     { symbol: "AMZN", name: "Amazon" },
     { symbol: "TSLA", name: "Tesla" },
+    { symbol: "FISV", name: "Fiserv" },
+    { symbol: "SOFI", name: "SoFi" },
 ];
-export const DEFAULT_STOCK_SYMBOLS = ["AAPL", "MSFT", "NVDA"];
+export const DEFAULT_STOCK_SYMBOLS = ["AAPL", "FISV", "SOFI"];
 export const MAX_STOCK_WATCHLIST_ITEMS = 5;
 export function isStockSymbol(value) {
     return AVAILABLE_STOCKS.some((stock) => stock.symbol === value);

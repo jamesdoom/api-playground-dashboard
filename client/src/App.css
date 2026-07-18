@@ -123,117 +123,6 @@
   min-height: 38px;
 }
 
-.dashboard-header .customize-dashboard-button {
-  color: #0b5f5b;
-  background: #f4fffc;
-  border-color: rgba(255, 255, 255, 0.6);
-  box-shadow: 0 7px 18px rgba(2, 22, 31, 0.18);
-}
-
-.dashboard-header .customize-dashboard-button:hover {
-  background: #dff8f2;
-}
-
-.dashboard-customization {
-  margin-bottom: 20px;
-  padding: 22px 24px;
-  background: linear-gradient(145deg, #ffffff, #f3faf8);
-  border: 1px solid #b8d8d3;
-  border-radius: 16px;
-  box-shadow: 0 16px 38px rgba(28, 61, 72, 0.1);
-}
-
-.customization-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-}
-
-.customization-heading h2 {
-  margin: 4px 0 0;
-  font-size: 1.15rem;
-}
-
-.customization-instructions {
-  margin: 10px 0 18px;
-  color: #64748b;
-  font-size: 0.84rem;
-}
-
-.customization-list {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  padding: 0;
-  margin: 0;
-  list-style: none;
-}
-
-.customization-list li {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  min-width: 0;
-  padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.78);
-  border: 1px solid #d8e7e4;
-  border-radius: 10px;
-  box-shadow: 0 5px 12px rgba(28, 61, 72, 0.04);
-}
-
-.customization-list label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  color: #172033;
-  font-size: 0.82rem;
-  font-weight: 700;
-}
-
-.customization-list input {
-  width: 18px;
-  height: 18px;
-  accent-color: #087f78;
-}
-
-.customization-move-controls {
-  display: flex;
-  gap: 5px;
-}
-
-.customization-move-controls button {
-  min-height: 30px;
-  padding: 0 9px;
-  color: #087f78;
-  background: #ffffff;
-  border: 1px solid #9fc9c3;
-  border-radius: 7px;
-  font: inherit;
-  font-size: 0.72rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background-color 150ms ease, transform 150ms ease;
-}
-
-.customization-move-controls button:hover:not(:disabled) {
-  background: #e5f5f2;
-  transform: translateY(-1px);
-}
-
-.customization-move-controls button:focus-visible,
-.customization-list input:focus-visible {
-  outline: 3px solid rgba(15, 118, 110, 0.2);
-  outline-offset: 2px;
-}
-
-.customization-move-controls button:disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
-}
-
 .dashboard-grid {
   columns: 2 360px;
   column-gap: 20px;
@@ -1461,7 +1350,6 @@
   .widget,
   .secondary-button,
   .weather-search button,
-  .customization-move-controls button,
   .crypto-row,
   .stock-row,
   .news-item,
@@ -1472,7 +1360,6 @@
   .widget:hover,
   .secondary-button:hover,
   .weather-search button:hover:not(:disabled),
-  .customization-move-controls button:hover:not(:disabled),
   .news-item:hover .news-thumbnail img {
     transform: none;
   }
@@ -1535,20 +1422,6 @@
 
   .server-status {
     align-self: stretch;
-  }
-
-  .customization-heading {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .customization-list {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .customization-list li {
-    align-items: flex-start;
-    flex-direction: column;
   }
 
   .crypto-detail-header,

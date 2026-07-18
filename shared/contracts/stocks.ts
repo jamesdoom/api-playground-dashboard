@@ -5,11 +5,13 @@ export const AVAILABLE_STOCKS = [
   { symbol: "GOOGL", name: "Alphabet" },
   { symbol: "AMZN", name: "Amazon" },
   { symbol: "TSLA", name: "Tesla" },
+  { symbol: "FISV", name: "Fiserv" },
+  { symbol: "SOFI", name: "SoFi" },
 ] as const;
 
 export type StockSymbol = (typeof AVAILABLE_STOCKS)[number]["symbol"];
 
-export const DEFAULT_STOCK_SYMBOLS: readonly StockSymbol[] = ["AAPL", "MSFT", "NVDA"];
+export const DEFAULT_STOCK_SYMBOLS: readonly StockSymbol[] = ["AAPL", "FISV", "SOFI"];
 export const MAX_STOCK_WATCHLIST_ITEMS = 5;
 
 export interface StockQuote {

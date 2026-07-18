@@ -101,6 +101,8 @@ async function mockDashboardApis(page: Page) {
       AAPL: { symbol: "AAPL", name: "Apple", priceUsd: 205.5, changePercent: 1.25 },
       MSFT: { symbol: "MSFT", name: "Microsoft", priceUsd: 450.25, changePercent: -0.75 },
       NVDA: { symbol: "NVDA", name: "Nvidia", priceUsd: 150, changePercent: 0.5 },
+      FISV: { symbol: "FISV", name: "Fiserv", priceUsd: 67.17, changePercent: -0.75 },
+      SOFI: { symbol: "SOFI", name: "SoFi", priceUsd: 17.32, changePercent: 3.08 },
       GOOGL: { symbol: "GOOGL", name: "Alphabet", priceUsd: 180, changePercent: 0.35 },
       AMZN: { symbol: "AMZN", name: "Amazon", priceUsd: 210, changePercent: -0.2 },
       TSLA: { symbol: "TSLA", name: "Tesla", priceUsd: 320, changePercent: 2.1 },
@@ -184,9 +186,9 @@ test("uses the expected responsive widget order", async ({ page }, testInfo) => 
     expect(news!.y).toBeGreaterThan(weather!.y + weather!.height);
     expect(news!.y).toBeGreaterThan(crypto!.y + crypto!.height);
   } else {
-    expect(news!.y).toBeGreaterThan(weather!.y + weather!.height);
-    expect(stocks!.y).toBeGreaterThan(news!.y + news!.height);
+    expect(stocks!.y).toBeGreaterThan(weather!.y + weather!.height);
     expect(crypto!.y).toBeGreaterThan(stocks!.y + stocks!.height);
+    expect(news!.y).toBeGreaterThan(crypto!.y + crypto!.height);
   }
 });
 
@@ -262,41 +264,6 @@ test("announces crypto trends and recovers a failed history request", async ({ p
   failBitcoin = false;
   await crypto.getByRole("button", { name: "Retry trend" }).click();
   await expect(crypto.getByText(/Bitcoin rose 12.50% over seven days/)).toBeVisible();
-});
-
-test("customizes widget visibility and order with the keyboard", async ({ page }) => {
-  await page.getByRole("button", { name: "Customize dashboard" }).click();
-
-  const showWeather = page.getByRole("checkbox", { name: "Show Weather" });
-  await showWeather.focus();
-  await page.keyboard.press("Space");
-  await expect(page.getByRole("region", { name: "Weather" })).toHaveCount(0);
-
-  const moveCryptoUp = page.getByRole("button", { name: "Move Crypto market up" });
-  await moveCryptoUp.focus();
-  await page.keyboard.press("Enter");
-
-  await expect(page.getByRole("status").filter({ hasText: "Crypto market moved up" })).toBeAttached();
-  await page.reload();
-
-  await expect(page.getByRole("region", { name: "Weather" })).toHaveCount(0);
-  await expect(page.locator(".widget h2")).toHaveText([
-    "Latest headlines",
-    "Crypto market",
-    "Stock watchlist",
-  ]);
-
-  await page.getByRole("button", { name: "Customize dashboard" }).click();
-  await expect(page.getByRole("checkbox", { name: "Show Weather" })).not.toBeChecked();
-  await page.getByRole("button", { name: "Restore defaults" }).click();
-
-  await expect(page.getByRole("region", { name: "Weather" })).toBeVisible();
-  await expect(page.locator(".widget h2")).toHaveText([
-    "Weather",
-    "Latest headlines",
-    "Stock watchlist",
-    "Crypto market",
-  ]);
 });
 
 test("opens a shareable crypto detail view and changes its range", async ({ page }) => {
