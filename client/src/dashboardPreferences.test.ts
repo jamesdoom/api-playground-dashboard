@@ -8,7 +8,22 @@ import {
 describe("dashboard preferences", () => {
   it("uses the default widget order when no preference is stored", () => {
     expect(loadDashboardPreferences()).toEqual({
-      order: ["weather", "stocks", "crypto", "news"],
+      order: ["weather", "news", "stocks", "crypto"],
+      hidden: [],
+    });
+  });
+
+  it("migrates the previous default order to the new layout", () => {
+    window.localStorage.setItem(
+      DASHBOARD_PREFERENCES_KEY,
+      JSON.stringify({
+        order: ["weather", "stocks", "crypto", "news"],
+        hidden: [],
+      }),
+    );
+
+    expect(loadDashboardPreferences()).toEqual({
+      order: ["weather", "news", "stocks", "crypto"],
       hidden: [],
     });
   });
@@ -23,7 +38,7 @@ describe("dashboard preferences", () => {
     );
 
     expect(loadDashboardPreferences()).toEqual({
-      order: ["crypto", "weather", "stocks", "news"],
+      order: ["crypto", "weather", "news", "stocks"],
       hidden: ["stocks"],
     });
   });

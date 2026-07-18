@@ -1,8 +1,8 @@
 export const DASHBOARD_WIDGETS = [
   { id: "weather", label: "Weather" },
+  { id: "news", label: "Latest headlines" },
   { id: "stocks", label: "Stock watchlist" },
   { id: "crypto", label: "Crypto market" },
-  { id: "news", label: "Latest headlines" },
 ] as const;
 
 export type DashboardWidgetId = (typeof DASHBOARD_WIDGETS)[number]["id"];
@@ -18,6 +18,13 @@ export const DEFAULT_DASHBOARD_PREFERENCES: DashboardPreferences = {
   order: DASHBOARD_WIDGETS.map((widget) => widget.id),
   hidden: [],
 };
+
+const PREVIOUS_DEFAULT_ORDER: DashboardWidgetId[] = ["weather", "stocks", "crypto", "news"];
+
+function isPreviousDefaultOrder(order: DashboardWidgetId[]): boolean {
+  return order.length === PREVIOUS_DEFAULT_ORDER.length
+    && order.every((id, index) => id === PREVIOUS_DEFAULT_ORDER[index]);
+}
 
 function isDashboardWidgetId(value: unknown): value is DashboardWidgetId {
   return DASHBOARD_WIDGETS.some((widget) => widget.id === value);
@@ -44,12 +51,15 @@ export function loadDashboardPreferences(): DashboardPreferences {
 
     const parsed = JSON.parse(stored) as { order?: unknown; hidden?: unknown };
     const storedOrder = uniqueWidgetIds(parsed.order);
+    const effectiveOrder = isPreviousDefaultOrder(storedOrder)
+      ? [...DEFAULT_DASHBOARD_PREFERENCES.order]
+      : storedOrder;
     const missingWidgets = DEFAULT_DASHBOARD_PREFERENCES.order.filter(
-      (id) => !storedOrder.includes(id),
+      (id) => !effectiveOrder.includes(id),
     );
 
     return {
-      order: [...storedOrder, ...missingWidgets],
+      order: [...effectiveOrder, ...missingWidgets],
       hidden: uniqueWidgetIds(parsed.hidden),
     };
   } catch {

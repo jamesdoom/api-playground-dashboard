@@ -174,19 +174,15 @@ test("uses the expected responsive widget order", async ({ page }, testInfo) => 
   expect(news).not.toBeNull();
 
   if (testInfo.project.name === "desktop") {
-    expect(Math.abs(weather!.y - crypto!.y)).toBeLessThanOrEqual(1);
-    expect(stocks!.y).toBeGreaterThan(weather!.y + weather!.height);
-    expect(news!.y).toBeGreaterThan(stocks!.y + stocks!.height);
-    expect(news!.y).toBeGreaterThan(crypto!.y + crypto!.height);
-  } else if (testInfo.project.name === "tablet") {
-    expect(Math.abs(weather!.y - crypto!.y)).toBeLessThanOrEqual(1);
-    expect(stocks!.y).toBeGreaterThan(weather!.y + weather!.height);
-    expect(news!.y).toBeGreaterThan(stocks!.y + stocks!.height);
-    expect(news!.y).toBeGreaterThan(crypto!.y + crypto!.height);
-  } else {
-    expect(stocks!.y).toBeGreaterThan(weather!.y + weather!.height);
+    expect(news!.y).toBeGreaterThan(weather!.y + weather!.height);
     expect(crypto!.y).toBeGreaterThan(stocks!.y + stocks!.height);
-    expect(news!.y).toBeGreaterThan(crypto!.y + crypto!.height);
+  } else if (testInfo.project.name === "tablet") {
+    expect(news!.y).toBeGreaterThan(weather!.y + weather!.height);
+    expect(crypto!.y).toBeGreaterThan(stocks!.y + stocks!.height);
+  } else {
+    expect(news!.y).toBeGreaterThan(weather!.y + weather!.height);
+    expect(stocks!.y).toBeGreaterThan(news!.y + news!.height);
+    expect(crypto!.y).toBeGreaterThan(stocks!.y + stocks!.height);
   }
 });
 
@@ -281,9 +277,9 @@ test("customizes widget visibility and order with the keyboard", async ({ page }
 
   await expect(page.getByRole("region", { name: "Weather" })).toHaveCount(0);
   await expect(page.locator(".widget h2")).toHaveText([
+    "Latest headlines",
     "Crypto market",
     "Stock watchlist",
-    "Latest headlines",
   ]);
 
   await page.getByRole("button", { name: "Customize dashboard" }).click();
@@ -293,9 +289,9 @@ test("customizes widget visibility and order with the keyboard", async ({ page }
   await expect(page.getByRole("region", { name: "Weather" })).toBeVisible();
   await expect(page.locator(".widget h2")).toHaveText([
     "Weather",
+    "Latest headlines",
     "Stock watchlist",
     "Crypto market",
-    "Latest headlines",
   ]);
 });
 

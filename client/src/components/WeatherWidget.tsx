@@ -1,8 +1,9 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { fetchWeatherByCity } from "../services/api";
 import type { WeatherData } from "../types/weather";
 
 const WEATHER_CITY_STORAGE_KEY = "dashboard-weather-city";
+const DEFAULT_WEATHER_CITY = "Tampa, FL";
 const timeFormatter = new Intl.DateTimeFormat("en-US", {
   hour: "numeric",
   minute: "2-digit",
@@ -26,9 +27,9 @@ function formatForecastDay(value: string, index: number): string {
 
 function getStoredCity(): string {
   try {
-    return window.localStorage.getItem(WEATHER_CITY_STORAGE_KEY) ?? "";
+    return window.localStorage.getItem(WEATHER_CITY_STORAGE_KEY) ?? DEFAULT_WEATHER_CITY;
   } catch {
-    return "";
+    return DEFAULT_WEATHER_CITY;
   }
 }
 
@@ -58,12 +59,16 @@ function WeatherSkeleton() {
 
 function WeatherWidget() {
   const [city, setCity] = useState(getStoredCity);
+  const [initialCity] = useState(city);
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
 
-  async function loadWeather(requestedCity: string, keepCurrentWeather = false) {
+  async function loadWeather(
+    requestedCity: string,
+    keepCurrentWeather = false,
+  ) {
     setIsLoading(true);
     setErrorMessage("");
 
@@ -88,6 +93,41 @@ function WeatherWidget() {
       setIsLoading(false);
     }
   }
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    fetchWeatherByCity(initialCity)
+      .then((weatherData) => {
+        if (!isCurrent) {
+          return;
+        }
+
+        setWeather(weatherData);
+        setCity(weatherData.city);
+        setUpdatedAt(new Date());
+
+        try {
+          window.localStorage.setItem(WEATHER_CITY_STORAGE_KEY, weatherData.city);
+        } catch {
+          // Storage may be unavailable in private browsing; weather still works without it.
+        }
+      })
+      .catch((error: unknown) => {
+        if (isCurrent) {
+          setErrorMessage(error instanceof Error ? error.message : "Unable to load weather data.");
+        }
+      })
+      .finally(() => {
+        if (isCurrent) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [initialCity]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

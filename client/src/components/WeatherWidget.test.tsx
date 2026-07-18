@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import WeatherWidget from "./WeatherWidget";
 
@@ -10,7 +10,7 @@ function jsonResponse(body: unknown, status = 200): Response {
 }
 
 describe("WeatherWidget", () => {
-  it("shows loading and success states and remembers the city", async () => {
+  it("loads Tampa by default and remembers the resolved city", async () => {
     let resolveRequest!: (response: Response) => void;
     const request = new Promise<Response>((resolve) => {
       resolveRequest = resolve;
@@ -18,15 +18,15 @@ describe("WeatherWidget", () => {
     vi.stubGlobal("fetch", vi.fn().mockReturnValue(request));
 
     render(<WeatherWidget />);
-    fireEvent.change(screen.getByLabelText("City"), { target: { value: "Chicago" } });
-    fireEvent.click(screen.getByRole("button", { name: "Search" }));
 
     expect(screen.getByRole("status")).toHaveTextContent("Fetching current conditions");
+    expect(screen.getByLabelText("City")).toHaveValue("Tampa, FL");
+    expect(fetch).toHaveBeenCalledWith("/api/weather?city=Tampa%2C+FL");
 
     await act(async () => {
       resolveRequest(
         jsonResponse({
-          city: "Chicago",
+          city: "Tampa",
           country: "US",
           temperature: 70,
           feelsLike: 69,
@@ -58,14 +58,14 @@ describe("WeatherWidget", () => {
       );
     });
 
-    expect(await screen.findByText("Chicago, US")).toBeInTheDocument();
+    expect(await screen.findByText("Tampa, US")).toBeInTheDocument();
     expect(screen.getByText("70°F")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Refresh" })).toBeEnabled();
     expect(screen.getByRole("heading", { name: "Next 24 hours" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "7-day forecast" })).toBeInTheDocument();
     expect(screen.getByText("82°")).toBeInTheDocument();
     expect(screen.getByTitle("Sunrise")).toHaveTextContent("5:32 AM");
-    expect(window.localStorage.getItem("dashboard-weather-city")).toBe("Chicago");
+    expect(window.localStorage.getItem("dashboard-weather-city")).toBe("Tampa");
   });
 
   it("shows the API error and a retry action", async () => {
@@ -75,8 +75,6 @@ describe("WeatherWidget", () => {
     );
 
     render(<WeatherWidget />);
-    fireEvent.change(screen.getByLabelText("City"), { target: { value: "Unknown" } });
-    fireEvent.click(screen.getByRole("button", { name: "Search" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "We could not find weather for that city.",
@@ -101,8 +99,6 @@ describe("WeatherWidget", () => {
     );
 
     render(<WeatherWidget />);
-    fireEvent.change(screen.getByLabelText("City"), { target: { value: "Chicago" } });
-    fireEvent.click(screen.getByRole("button", { name: "Search" }));
 
     expect(await screen.findByRole("img", { name: "clear sky" })).toHaveTextContent("☀️");
   });
