@@ -8,7 +8,7 @@ A responsive full-stack dashboard that brings several third-party APIs into one 
 
 ## Features
 
-- Search current weather conditions by city with OpenWeather
+- Search current weather conditions by city with Open-Meteo
 - Track Bitcoin, Ethereum, and Solana prices and 24-hour movement with CoinGecko
 - Compare seven-day crypto price trends with lightweight, accessible SVG charts
 - Open shareable crypto detail views with 7, 30, and 90-day ranges and summary statistics
@@ -31,7 +31,7 @@ A responsive full-stack dashboard that brings several third-party APIs into one 
 | Client | React, TypeScript, Vite, CSS |
 | Local API | Node.js, Express, TypeScript, tsx |
 | Production API | Vercel Functions |
-| Providers | OpenWeather, CoinGecko, Finnhub, The Guardian Open Platform |
+| Providers | Open-Meteo, CoinGecko, Finnhub, The Guardian Open Platform |
 | Quality | Vitest, Testing Library, Playwright, ESLint, GitHub Actions |
 
 ## Architecture
@@ -54,7 +54,7 @@ React dashboard
           - shared contracts
                      |
                      v
-    OpenWeather / CoinGecko / Finnhub / Guardian
+    Open-Meteo / CoinGecko / Finnhub / Guardian
 ```
 
 The browser never receives provider credentials. Both production handlers and the local Express server call the same shared service layer so their behavior stays aligned.
@@ -86,7 +86,7 @@ api-playground-dashboard/
 ### Prerequisites
 
 - Node.js 22 or newer
-- API keys from [OpenWeather](https://openweathermap.org/api), [CoinGecko](https://www.coingecko.com/en/api), [Finnhub](https://finnhub.io/), and [The Guardian](https://open-platform.theguardian.com/)
+- API keys from [CoinGecko](https://www.coingecko.com/en/api), [Finnhub](https://finnhub.io/), and [The Guardian](https://open-platform.theguardian.com/). Open-Meteo does not require a key for non-commercial use.
 
 ### 1. Install dependencies
 
@@ -101,7 +101,6 @@ Copy `server/.env.example` to `server/.env` and replace the placeholder values:
 
 ```dotenv
 PORT=5000
-OPENWEATHER_API_KEY=your_openweather_api_key
 GUARDIAN_API_KEY=your_guardian_api_key
 COINGECKO_API_KEY=your_coingecko_demo_api_key
 FINNHUB_API_KEY=your_finnhub_api_key
@@ -157,7 +156,7 @@ Playwright starts the Vite client, mocks provider responses inside the browser, 
 
 ## Deployment
 
-The repository is configured for Vercel. The React client builds to `client/dist`, while files in `api/` become serverless endpoints. Add `OPENWEATHER_API_KEY`, `GUARDIAN_API_KEY`, `COINGECKO_API_KEY`, and `FINNHUB_API_KEY` to the Vercel project environment before deploying.
+The repository is configured for Vercel. The React client builds to `client/dist`, while files in `api/` become serverless endpoints. Add `GUARDIAN_API_KEY`, `COINGECKO_API_KEY`, and `FINNHUB_API_KEY` to the Vercel project environment before deploying.
 
 ## Roadmap
 

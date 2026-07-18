@@ -1,5 +1,12 @@
-import type { OpenWeatherApiResponse, WeatherData } from "../contracts/weather.ts";
+import type { OpenMeteoForecastResponse, OpenMeteoGeocodingResponse, WeatherData } from "../contracts/weather.ts";
 import { type ApiErrorDetails } from "../errors/ProviderError.ts";
-export declare function mapOpenWeatherResponse(data: OpenWeatherApiResponse): WeatherData;
-export declare function getWeatherByCity(city: string, apiKey: string | undefined): Promise<WeatherData>;
+type WeatherPresentation = {
+    description: string;
+    dayIcon: string;
+    nightIcon?: string;
+};
+export declare function getWeatherPresentation(weatherCode: number, isDay: boolean): WeatherPresentation;
+export declare function mapOpenMeteoResponse(location: NonNullable<OpenMeteoGeocodingResponse["results"]>[number], data: OpenMeteoForecastResponse): WeatherData;
+export declare function getWeatherByCity(city: string): Promise<WeatherData>;
 export declare function getWeatherApiError(error: unknown): ApiErrorDetails;
+export {};

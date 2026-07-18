@@ -5,7 +5,7 @@ import { AVAILABLE_STOCKS, parseStockSymbols } from "../../../shared/contracts/s
 import { mapCoinGeckoHistory, mapCoinGeckoResponse } from "../../../shared/services/cryptoService.ts";
 import { mapGuardianResponse } from "../../../shared/services/newsService.ts";
 import { mapFinnhubQuote } from "../../../shared/services/stocksService.ts";
-import { mapOpenWeatherResponse } from "../../../shared/services/weatherService.ts";
+import { mapOpenMeteoResponse } from "../../../shared/services/weatherService.ts";
 
 describe("shared provider transformations", () => {
   it("maps Finnhub data into the stock quote contract", () => {
@@ -67,13 +67,19 @@ describe("shared provider transformations", () => {
     });
   });
 
-  it("maps OpenWeather data into the dashboard contract", () => {
-    const weather = mapOpenWeatherResponse({
-      name: "Chicago",
-      sys: { country: "US" },
-      main: { temp: 70.4, feels_like: 68.6, humidity: 52 },
-      weather: [{ description: "clear sky", icon: "01d" }],
-    });
+  it("maps Open-Meteo data into the dashboard contract", () => {
+    const weather = mapOpenMeteoResponse(
+      { name: "Chicago", country_code: "US", latitude: 41.85, longitude: -87.65 },
+      {
+        current: {
+          temperature_2m: 70.4,
+          apparent_temperature: 68.6,
+          relative_humidity_2m: 52,
+          weather_code: 0,
+          is_day: 1,
+        },
+      },
+    );
 
     expect(weather).toEqual({
       city: "Chicago",
@@ -82,7 +88,7 @@ describe("shared provider transformations", () => {
       feelsLike: 69,
       humidity: 52,
       weatherDescription: "clear sky",
-      icon: "01d",
+      icon: "☀️",
     });
   });
 

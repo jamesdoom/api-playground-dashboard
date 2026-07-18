@@ -8,10 +8,6 @@ const timeFormatter = new Intl.DateTimeFormat("en-US", {
   minute: "2-digit",
 });
 
-function getWeatherIconUrl(icon: string): string {
-  return `https://openweathermap.org/img/wn/${icon}@2x.png`;
-}
-
 function getStoredCity(): string {
   try {
     return window.localStorage.getItem(WEATHER_CITY_STORAGE_KEY) ?? "";
@@ -21,27 +17,10 @@ function getStoredCity(): string {
 }
 
 function WeatherIcon({ icon, description }: { icon: string; description: string }) {
-  const [hasError, setHasError] = useState(false);
-
-  if (hasError) {
-    return (
-      <span
-        className="weather-icon weather-icon-fallback"
-        role="img"
-        aria-label={`${description} icon unavailable`}
-      >
-        W
-      </span>
-    );
-  }
-
   return (
-    <img
-      className="weather-icon"
-      src={getWeatherIconUrl(icon)}
-      alt={description}
-      onError={() => setHasError(true)}
-    />
+    <span className="weather-icon weather-icon-fallback" role="img" aria-label={description}>
+      {icon}
+    </span>
   );
 }
 
@@ -115,7 +94,7 @@ function WeatherWidget() {
     >
       <div className="widget-header">
         <div>
-          <p className="eyebrow">OpenWeather API</p>
+          <p className="eyebrow">Open-Meteo API</p>
           <h2 id="weather-widget-title">Weather</h2>
         </div>
         {weather?.icon ? (

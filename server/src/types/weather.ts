@@ -1,1 +1,5 @@
-export type { OpenWeatherApiResponse, WeatherData } from "../../../shared/contracts/weather.ts";
+export type {
+  OpenMeteoForecastResponse,
+  OpenMeteoGeocodingResponse,
+  WeatherData,
+} from "../../../shared/contracts/weather.ts";

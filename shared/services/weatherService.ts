@@ -1,71 +1,125 @@
-import type { OpenWeatherApiResponse, WeatherData } from "../contracts/weather.ts";
+import type {
+  OpenMeteoForecastResponse,
+  OpenMeteoGeocodingResponse,
+  WeatherData,
+} from "../contracts/weather.ts";
 import { ProviderError, type ApiErrorDetails } from "../errors/ProviderError.ts";
 
-const OPENWEATHER_BASE_URL = "https://api.openweathermap.org/data/2.5/weather";
+const OPEN_METEO_GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search";
+const OPEN_METEO_FORECAST_URL = "https://api.open-meteo.com/v1/forecast";
 
-export function mapOpenWeatherResponse(data: OpenWeatherApiResponse): WeatherData {
-  const currentWeather = data.weather[0];
+type WeatherPresentation = {
+  description: string;
+  dayIcon: string;
+  nightIcon?: string;
+};
+
+const WEATHER_CODES: Record<number, WeatherPresentation> = {
+  0: { description: "clear sky", dayIcon: "☀️", nightIcon: "🌙" },
+  1: { description: "mainly clear", dayIcon: "🌤️", nightIcon: "🌙" },
+  2: { description: "partly cloudy", dayIcon: "⛅", nightIcon: "☁️" },
+  3: { description: "overcast", dayIcon: "☁️" },
+  45: { description: "fog", dayIcon: "🌫️" },
+  48: { description: "rime fog", dayIcon: "🌫️" },
+  51: { description: "light drizzle", dayIcon: "🌦️" },
+  53: { description: "moderate drizzle", dayIcon: "🌦️" },
+  55: { description: "dense drizzle", dayIcon: "🌧️" },
+  56: { description: "light freezing drizzle", dayIcon: "🌧️" },
+  57: { description: "dense freezing drizzle", dayIcon: "🌧️" },
+  61: { description: "slight rain", dayIcon: "🌦️" },
+  63: { description: "moderate rain", dayIcon: "🌧️" },
+  65: { description: "heavy rain", dayIcon: "🌧️" },
+  66: { description: "light freezing rain", dayIcon: "🌧️" },
+  67: { description: "heavy freezing rain", dayIcon: "🌧️" },
+  71: { description: "slight snowfall", dayIcon: "🌨️" },
+  73: { description: "moderate snowfall", dayIcon: "🌨️" },
+  75: { description: "heavy snowfall", dayIcon: "❄️" },
+  77: { description: "snow grains", dayIcon: "❄️" },
+  80: { description: "slight rain showers", dayIcon: "🌦️" },
+  81: { description: "moderate rain showers", dayIcon: "🌧️" },
+  82: { description: "violent rain showers", dayIcon: "⛈️" },
+  85: { description: "slight snow showers", dayIcon: "🌨️" },
+  86: { description: "heavy snow showers", dayIcon: "❄️" },
+  95: { description: "thunderstorm", dayIcon: "⛈️" },
+  96: { description: "thunderstorm with slight hail", dayIcon: "⛈️" },
+  99: { description: "thunderstorm with heavy hail", dayIcon: "⛈️" },
+};
+
+export function getWeatherPresentation(weatherCode: number, isDay: boolean): WeatherPresentation {
+  const presentation = WEATHER_CODES[weatherCode] ?? {
+    description: "weather unavailable",
+    dayIcon: "🌡️",
+  };
+
+  return presentation.nightIcon && !isDay
+    ? { ...presentation, dayIcon: presentation.nightIcon }
+    : presentation;
+}
+
+export function mapOpenMeteoResponse(
+  location: NonNullable<OpenMeteoGeocodingResponse["results"]>[number],
+  data: OpenMeteoForecastResponse,
+): WeatherData {
+  const presentation = getWeatherPresentation(data.current.weather_code, data.current.is_day === 1);
 
   return {
-    city: data.name,
-    country: data.sys.country,
-    temperature: Math.round(data.main.temp),
-    feelsLike: Math.round(data.main.feels_like),
-    humidity: data.main.humidity,
-    weatherDescription: currentWeather?.description ?? "Weather unavailable",
-    icon: currentWeather?.icon ?? "",
+    city: location.name,
+    country: location.country_code,
+    temperature: Math.round(data.current.temperature_2m),
+    feelsLike: Math.round(data.current.apparent_temperature),
+    humidity: Math.round(data.current.relative_humidity_2m),
+    weatherDescription: presentation.description,
+    icon: presentation.dayIcon,
   };
 }
 
-export async function getWeatherByCity(city: string, apiKey: string | undefined): Promise<WeatherData> {
-  if (!apiKey) {
-    throw new ProviderError("not_configured", "OpenWeather API key is not configured.");
-  }
-
-  const searchParams = new URLSearchParams({
-    q: city,
-    appid: apiKey,
-    units: "imperial",
-  });
-
+export async function getWeatherByCity(city: string): Promise<WeatherData> {
   try {
-    const response = await fetch(`${OPENWEATHER_BASE_URL}?${searchParams.toString()}`);
+    const geocodingParams = new URLSearchParams({ name: city, count: "1", language: "en" });
+    const geocodingResponse = await fetch(
+      `${OPEN_METEO_GEOCODING_URL}?${geocodingParams.toString()}`,
+    );
 
-    if (response.status === 404) {
+    if (!geocodingResponse.ok) {
+      throw new ProviderError("unavailable", "Open-Meteo geocoding request failed.");
+    }
+
+    const geocoding = (await geocodingResponse.json()) as OpenMeteoGeocodingResponse;
+    const location = geocoding.results?.[0];
+    if (!location) {
       throw new ProviderError("not_found", "City was not found.");
     }
 
-    if (response.status === 401) {
-      throw new ProviderError("unauthorized", "OpenWeather rejected the API key.");
+    const forecastParams = new URLSearchParams({
+      latitude: String(location.latitude),
+      longitude: String(location.longitude),
+      current: "temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,is_day",
+      temperature_unit: "fahrenheit",
+      timezone: "auto",
+    });
+    const forecastResponse = await fetch(
+      `${OPEN_METEO_FORECAST_URL}?${forecastParams.toString()}`,
+    );
+
+    if (!forecastResponse.ok) {
+      throw new ProviderError("unavailable", "Open-Meteo forecast request failed.");
     }
 
-    if (!response.ok) {
-      throw new ProviderError("unavailable", "OpenWeather request failed.");
-    }
-
-    const data = (await response.json()) as OpenWeatherApiResponse;
-    return mapOpenWeatherResponse(data);
+    const forecast = (await forecastResponse.json()) as OpenMeteoForecastResponse;
+    return mapOpenMeteoResponse(location, forecast);
   } catch (error) {
     if (error instanceof ProviderError) {
       throw error;
     }
 
-    throw new ProviderError("unavailable", "OpenWeather could not be reached.");
+    throw new ProviderError("unavailable", "Open-Meteo could not be reached.");
   }
 }
 
 export function getWeatherApiError(error: unknown): ApiErrorDetails {
   if (error instanceof ProviderError) {
-    if (error.code === "not_configured") {
-      return { statusCode: 500, message: "Weather service is not configured yet." };
-    }
-
     if (error.code === "not_found") {
       return { statusCode: 404, message: "We could not find weather for that city." };
-    }
-
-    if (error.code === "unauthorized") {
-      return { statusCode: 500, message: "Weather service is not configured correctly." };
     }
   }
 

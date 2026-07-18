@@ -38,14 +38,12 @@ function createApiResponse() {
 
 describe("Vercel API handlers", () => {
   beforeEach(() => {
-    process.env.OPENWEATHER_API_KEY = "weather-key";
     process.env.GUARDIAN_API_KEY = "news-key";
     process.env.COINGECKO_API_KEY = "crypto-key";
     process.env.FINNHUB_API_KEY = "stocks-key";
   });
 
   afterEach(() => {
-    delete process.env.OPENWEATHER_API_KEY;
     delete process.env.GUARDIAN_API_KEY;
     delete process.env.COINGECKO_API_KEY;
     delete process.env.FINNHUB_API_KEY;
@@ -108,20 +106,32 @@ describe("Vercel API handlers", () => {
   });
 
   it("returns mapped weather data with the CDN cache policy", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue(
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(
         new Response(
           JSON.stringify({
-            name: "Chicago",
-            sys: { country: "US" },
-            main: { temp: 70, feels_like: 69, humidity: 50 },
-            weather: [{ description: "clear sky", icon: "01d" }],
+            results: [
+              { name: "Chicago", country_code: "US", latitude: 41.85, longitude: -87.65 },
+            ],
           }),
           { status: 200, headers: { "Content-Type": "application/json" } },
         ),
-      ),
-    );
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            current: {
+              temperature_2m: 70,
+              apparent_temperature: 69,
+              relative_humidity_2m: 50,
+              weather_code: 0,
+              is_day: 1,
+            },
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        ),
+      );
+    vi.stubGlobal("fetch", fetchMock);
     const result = createApiResponse();
 
     await weatherHandler({ method: "GET", query: { city: "Chicago" } }, result.response);
@@ -129,6 +139,10 @@ describe("Vercel API handlers", () => {
     expect(result.statusCode).toBe(200);
     expect(result.body).toMatchObject({ city: "Chicago", temperature: 70 });
     expect(result.headers.get("Cache-Control")).toContain("s-maxage=300");
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      expect.stringContaining("temperature_unit=fahrenheit"),
+    );
   });
 
   it("returns mapped headlines with the CDN cache policy", async () => {

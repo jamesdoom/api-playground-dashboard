@@ -28,7 +28,7 @@ export default async function handler(request: ApiRequest<WeatherQuery>, respons
   }
 
   try {
-    const weather = await getWeatherByCity(city, process.env.OPENWEATHER_API_KEY);
+    const weather = await getWeatherByCity(city);
     response.setHeader("Cache-Control", DASHBOARD_CACHE_CONTROL);
     response.status(200).json(weather);
   } catch (error) {
