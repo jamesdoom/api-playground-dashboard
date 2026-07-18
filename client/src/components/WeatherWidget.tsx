@@ -150,7 +150,6 @@ function WeatherWidget() {
     >
       <div className="widget-header">
         <div>
-          <p className="eyebrow">Open-Meteo API</p>
           <h2 id="weather-widget-title">Weather</h2>
         </div>
         {weather?.icon ? (

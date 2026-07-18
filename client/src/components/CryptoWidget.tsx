@@ -231,8 +231,7 @@ function CryptoWidget() {
     >
       <div className="widget-header">
         <div>
-          <p className="eyebrow">CoinGecko API</p>
-          <h2 id="crypto-widget-title" tabIndex={-1}>Crypto market</h2>
+          <h2 id="crypto-widget-title" tabIndex={-1}>Crypto</h2>
         </div>
         <span className="crypto-currency">USD</span>
       </div>

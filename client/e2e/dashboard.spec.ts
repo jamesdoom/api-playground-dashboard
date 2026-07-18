@@ -168,9 +168,9 @@ test("uses the expected responsive widget order", async ({ page }, testInfo) => 
   await expect(page.getByText("Bitcoin", { exact: true })).toBeVisible();
 
   const weather = await page.getByRole("region", { name: "Weather" }).boundingBox();
-  const crypto = await page.getByRole("region", { name: "Crypto market" }).boundingBox();
-  const stocks = await page.getByRole("region", { name: "Stock watchlist" }).boundingBox();
-  const news = await page.getByRole("region", { name: "Latest headlines" }).boundingBox();
+  const crypto = await page.getByRole("region", { name: "Crypto" }).boundingBox();
+  const stocks = await page.getByRole("region", { name: "Stocks" }).boundingBox();
+  const news = await page.getByRole("region", { name: "News" }).boundingBox();
 
   expect(weather).not.toBeNull();
   expect(crypto).not.toBeNull();
@@ -195,7 +195,7 @@ test("uses the expected responsive widget order", async ({ page }, testInfo) => 
 });
 
 test("recovers from an API refresh error", async ({ page }) => {
-  const news = page.getByRole("region", { name: "Latest headlines" });
+  const news = page.getByRole("region", { name: "News" });
   await expect(news.getByText("Example technology headline")).toBeVisible();
 
   await page.unroute(newsApiPattern);
@@ -218,8 +218,8 @@ test("recovers from an API refresh error", async ({ page }) => {
 });
 
 test("customizes and restores both market watchlists", async ({ page }) => {
-  const crypto = page.getByRole("region", { name: "Crypto market" });
-  const stocks = page.getByRole("region", { name: "Stock watchlist" });
+  const crypto = page.getByRole("region", { name: "Crypto" });
+  const stocks = page.getByRole("region", { name: "Stocks" });
 
   await crypto.getByLabel("Add crypto asset").selectOption("dogecoin");
   await crypto.getByRole("button", { name: "Add" }).click();
@@ -240,7 +240,7 @@ test("customizes and restores both market watchlists", async ({ page }) => {
 });
 
 test("announces crypto trends and recovers a failed history request", async ({ page }) => {
-  const crypto = page.getByRole("region", { name: "Crypto market" });
+  const crypto = page.getByRole("region", { name: "Crypto" });
   await expect(crypto.getByText(/Bitcoin rose 12.50% over seven days/)).toBeVisible();
   await expect(crypto.getByRole("img", { name: /Seven-day trend Bitcoin rose 12.50%/i })).toBeVisible();
 
@@ -269,7 +269,7 @@ test("announces crypto trends and recovers a failed history request", async ({ p
 });
 
 test("opens a shareable crypto detail view and changes its range", async ({ page }) => {
-  const crypto = page.getByRole("region", { name: "Crypto market" });
+  const crypto = page.getByRole("region", { name: "Crypto" });
   const bitcoin = crypto.getByRole("listitem").filter({ hasText: "Bitcoin" });
   const detailsButton = bitcoin.getByRole("button", { name: "View details" });
 

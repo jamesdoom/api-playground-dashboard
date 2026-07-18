@@ -163,8 +163,7 @@ function StocksWidget() {
     >
       <div className="widget-header">
         <div>
-          <p className="eyebrow">Finnhub API</p>
-          <h2 id="stocks-widget-title">Stock watchlist</h2>
+          <h2 id="stocks-widget-title">Stocks</h2>
         </div>
         <span className="market-currency">USD</span>
       </div>

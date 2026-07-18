@@ -129,8 +129,7 @@ function NewsWidget() {
     >
       <div className="widget-header news-header">
         <div>
-          <p className="eyebrow">The Guardian Open Platform</p>
-          <h2 id="news-widget-title">Latest headlines</h2>
+          <h2 id="news-widget-title">News</h2>
         </div>
 
         <div className="news-controls">
