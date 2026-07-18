@@ -240,12 +240,45 @@
   min-width: 0;
 }
 
+.dashboard-grid-default {
+  display: grid;
+  grid-template-areas:
+    "weather stocks"
+    "weather crypto"
+    "news news";
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 20px;
+  columns: auto;
+}
+
+.dashboard-grid-default > .weather-widget {
+  grid-area: weather;
+}
+
+.dashboard-grid-default > .stocks-widget {
+  grid-area: stocks;
+}
+
+.dashboard-grid-default > .crypto-widget {
+  grid-area: crypto;
+}
+
+.dashboard-grid-default > .news-widget {
+  grid-area: news;
+}
+
 .dashboard-grid > .widget {
   display: inline-block;
   width: 100%;
   margin: 0 0 20px;
   vertical-align: top;
   break-inside: avoid;
+}
+
+.dashboard-grid-default > .widget {
+  display: block;
+  margin: 0;
 }
 
 .widget {
@@ -1448,6 +1481,14 @@
 @media (max-width: 780px) {
   .dashboard-grid {
     columns: 1;
+  }
+
+  .dashboard-grid-default {
+    display: block;
+  }
+
+  .dashboard-grid-default > .widget {
+    margin: 0 0 20px;
   }
 }
 

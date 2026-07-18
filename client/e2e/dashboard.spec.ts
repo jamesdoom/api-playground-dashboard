@@ -174,11 +174,15 @@ test("uses the expected responsive widget order", async ({ page }, testInfo) => 
   expect(news).not.toBeNull();
 
   if (testInfo.project.name === "desktop") {
-    expect(news!.y).toBeGreaterThan(weather!.y + weather!.height);
+    expect(Math.abs(weather!.y - stocks!.y)).toBeLessThanOrEqual(1);
     expect(crypto!.y).toBeGreaterThan(stocks!.y + stocks!.height);
+    expect(news!.y).toBeGreaterThan(weather!.y + weather!.height);
+    expect(news!.y).toBeGreaterThan(crypto!.y + crypto!.height);
   } else if (testInfo.project.name === "tablet") {
-    expect(news!.y).toBeGreaterThan(weather!.y + weather!.height);
+    expect(Math.abs(weather!.y - stocks!.y)).toBeLessThanOrEqual(1);
     expect(crypto!.y).toBeGreaterThan(stocks!.y + stocks!.height);
+    expect(news!.y).toBeGreaterThan(weather!.y + weather!.height);
+    expect(news!.y).toBeGreaterThan(crypto!.y + crypto!.height);
   } else {
     expect(news!.y).toBeGreaterThan(weather!.y + weather!.height);
     expect(stocks!.y).toBeGreaterThan(news!.y + news!.height);

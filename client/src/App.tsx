@@ -88,6 +88,11 @@ function App() {
   }
 
   const visibleWidgetIds = preferences.order.filter((id) => !preferences.hidden.includes(id));
+  const isDefaultLayout = preferences.hidden.length === 0
+    && preferences.order.length === DEFAULT_DASHBOARD_PREFERENCES.order.length
+    && preferences.order.every(
+      (id, index) => id === DEFAULT_DASHBOARD_PREFERENCES.order[index],
+    );
   const serverStatusTone = serverStatus === "Checking server..."
     ? "pending"
     : serverStatus === "Server connection failed"
@@ -175,7 +180,10 @@ function App() {
         </section>
       ) : null}
 
-      <section className="dashboard-grid" aria-label="API widgets">
+      <section
+        className={`dashboard-grid${isDefaultLayout ? " dashboard-grid-default" : ""}`}
+        aria-label="API widgets"
+      >
         {visibleWidgetIds.length > 0 ? (
           visibleWidgetIds.map(renderWidget)
         ) : (
