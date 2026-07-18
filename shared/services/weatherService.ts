@@ -61,6 +61,36 @@ export function mapOpenMeteoResponse(
   data: OpenMeteoForecastResponse,
 ): WeatherData {
   const presentation = getWeatherPresentation(data.current.weather_code, data.current.is_day === 1);
+  const hourlyForecast = data.hourly.time.map((time, index) => {
+    const hourlyPresentation = getWeatherPresentation(
+      data.hourly.weather_code[index] ?? -1,
+      data.hourly.is_day[index] === 1,
+    );
+
+    return {
+      time,
+      temperature: Math.round(data.hourly.temperature_2m[index] ?? 0),
+      precipitationProbability: Math.round(data.hourly.precipitation_probability[index] ?? 0),
+      weatherDescription: hourlyPresentation.description,
+      icon: hourlyPresentation.dayIcon,
+    };
+  });
+  const dailyForecast = data.daily.time.map((date, index) => {
+    const dailyPresentation = getWeatherPresentation(data.daily.weather_code[index] ?? -1, true);
+
+    return {
+      date,
+      high: Math.round(data.daily.temperature_2m_max[index] ?? 0),
+      low: Math.round(data.daily.temperature_2m_min[index] ?? 0),
+      sunrise: data.daily.sunrise[index] ?? "",
+      sunset: data.daily.sunset[index] ?? "",
+      precipitationProbability: Math.round(
+        data.daily.precipitation_probability_max[index] ?? 0,
+      ),
+      weatherDescription: dailyPresentation.description,
+      icon: dailyPresentation.dayIcon,
+    };
+  });
 
   return {
     city: location.name,
@@ -70,6 +100,8 @@ export function mapOpenMeteoResponse(
     humidity: Math.round(data.current.relative_humidity_2m),
     weatherDescription: presentation.description,
     icon: presentation.dayIcon,
+    hourlyForecast,
+    dailyForecast,
   };
 }
 
@@ -94,8 +126,13 @@ export async function getWeatherByCity(city: string): Promise<WeatherData> {
       latitude: String(location.latitude),
       longitude: String(location.longitude),
       current: "temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,is_day",
+      hourly: "temperature_2m,precipitation_probability,weather_code,is_day",
+      daily:
+        "weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_probability_max",
       temperature_unit: "fahrenheit",
       timezone: "auto",
+      forecast_hours: "24",
+      forecast_days: "7",
     });
     const forecastResponse = await fetch(
       `${OPEN_METEO_FORECAST_URL}?${forecastParams.toString()}`,

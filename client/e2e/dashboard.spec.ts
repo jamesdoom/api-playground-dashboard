@@ -53,6 +53,27 @@ async function mockDashboardApis(page: Page) {
         humidity: 50,
         weatherDescription: "clear sky",
         icon: "",
+        hourlyForecast: [
+          {
+            time: "2026-07-18T09:00",
+            temperature: 71,
+            precipitationProbability: 15,
+            weatherDescription: "mainly clear",
+            icon: "🌤️",
+          },
+        ],
+        dailyForecast: [
+          {
+            date: "2026-07-18",
+            high: 82,
+            low: 64,
+            sunrise: "2026-07-18T05:32",
+            sunset: "2026-07-18T20:24",
+            precipitationProbability: 25,
+            weatherDescription: "partly cloudy",
+            icon: "⛅",
+          },
+        ],
       },
     }),
   );
@@ -108,6 +129,8 @@ test("renders every dashboard integration and searches for weather", async ({ pa
   await weather.getByLabel("City").fill("Chicago");
   await weather.getByRole("button", { name: "Search" }).click();
   await expect(weather.getByText("Chicago, US")).toBeVisible();
+  await expect(weather.getByRole("heading", { name: "Next 24 hours" })).toBeVisible();
+  await expect(weather.getByRole("heading", { name: "7-day forecast" })).toBeVisible();
 });
 
 test("keeps widgets and weather controls inside the viewport", async ({ page }) => {

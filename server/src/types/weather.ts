@@ -1,4 +1,6 @@
 export type {
+  DailyForecast,
+  HourlyForecast,
   OpenMeteoForecastResponse,
   OpenMeteoGeocodingResponse,
   WeatherData,

@@ -569,6 +569,123 @@
   font-weight: 700;
 }
 
+.forecast-section {
+  min-width: 0;
+}
+
+.forecast-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.forecast-heading h3 {
+  margin: 0;
+  color: #173b50;
+  font-size: 0.95rem;
+}
+
+.forecast-heading span {
+  color: #71818d;
+  font-size: 0.72rem;
+}
+
+.hourly-forecast {
+  display: flex;
+  gap: 8px;
+  padding: 2px 2px 10px;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+}
+
+.hourly-forecast:focus-visible {
+  border-radius: 8px;
+  outline: 3px solid rgba(25, 118, 163, 0.17);
+}
+
+.hourly-forecast-card {
+  display: grid;
+  flex: 0 0 76px;
+  justify-items: center;
+  gap: 5px;
+  padding: 10px 6px;
+  background: #f7fbfc;
+  border: 1px solid #dce8ec;
+  border-radius: 12px;
+}
+
+.hourly-forecast-card time,
+.hourly-forecast-card small {
+  color: #627785;
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+.hourly-forecast-card [role="img"] {
+  font-size: 1.25rem;
+}
+
+.hourly-forecast-card strong {
+  color: #173b50;
+  font-size: 1rem;
+}
+
+.daily-forecast {
+  display: grid;
+  border: 1px solid #dce8ec;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.daily-forecast-row {
+  display: grid;
+  grid-template-columns: minmax(46px, 0.75fr) 28px minmax(64px, 0.8fr) minmax(62px, 0.9fr) minmax(94px, 1.2fr);
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 10px 12px;
+  color: #526977;
+  background: #fbfdfd;
+  font-size: 0.76rem;
+}
+
+.daily-forecast-row + .daily-forecast-row {
+  border-top: 1px solid #e5edef;
+}
+
+.daily-forecast-row time {
+  color: #173b50;
+  font-weight: 700;
+}
+
+.daily-condition {
+  font-size: 1.15rem;
+  text-align: center;
+}
+
+.daily-temperatures {
+  display: flex;
+  gap: 7px;
+}
+
+.daily-temperatures strong {
+  color: #173b50;
+}
+
+.daily-precipitation {
+  white-space: nowrap;
+}
+
+.sun-times {
+  display: flex;
+  justify-content: flex-end;
+  gap: 7px;
+  white-space: nowrap;
+}
+
 .weather-skeleton {
   min-height: 224px;
 }

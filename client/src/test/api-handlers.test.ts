@@ -127,6 +127,22 @@ describe("Vercel API handlers", () => {
               weather_code: 0,
               is_day: 1,
             },
+            hourly: {
+              time: ["2026-07-18T09:00"],
+              temperature_2m: [71],
+              precipitation_probability: [15],
+              weather_code: [1],
+              is_day: [1],
+            },
+            daily: {
+              time: ["2026-07-18"],
+              temperature_2m_max: [82],
+              temperature_2m_min: [64],
+              sunrise: ["2026-07-18T05:32"],
+              sunset: ["2026-07-18T20:24"],
+              precipitation_probability_max: [25],
+              weather_code: [2],
+            },
           }),
           { status: 200, headers: { "Content-Type": "application/json" } },
         ),
@@ -138,10 +154,18 @@ describe("Vercel API handlers", () => {
 
     expect(result.statusCode).toBe(200);
     expect(result.body).toMatchObject({ city: "Chicago", temperature: 70 });
+    expect(result.body).toMatchObject({
+      hourlyForecast: [{ temperature: 71, precipitationProbability: 15 }],
+      dailyForecast: [{ high: 82, low: 64, precipitationProbability: 25 }],
+    });
     expect(result.headers.get("Cache-Control")).toContain("s-maxage=300");
     expect(fetchMock).toHaveBeenNthCalledWith(
       2,
       expect.stringContaining("temperature_unit=fahrenheit"),
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      expect.stringContaining("forecast_hours=24"),
     );
   });
 

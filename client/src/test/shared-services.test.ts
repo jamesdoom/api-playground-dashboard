@@ -78,6 +78,22 @@ describe("shared provider transformations", () => {
           weather_code: 0,
           is_day: 1,
         },
+        hourly: {
+          time: ["2026-07-18T09:00"],
+          temperature_2m: [71.2],
+          precipitation_probability: [15],
+          weather_code: [1],
+          is_day: [1],
+        },
+        daily: {
+          time: ["2026-07-18"],
+          temperature_2m_max: [82.4],
+          temperature_2m_min: [64.2],
+          sunrise: ["2026-07-18T05:32"],
+          sunset: ["2026-07-18T20:24"],
+          precipitation_probability_max: [25],
+          weather_code: [2],
+        },
       },
     );
 
@@ -89,6 +105,27 @@ describe("shared provider transformations", () => {
       humidity: 52,
       weatherDescription: "clear sky",
       icon: "☀️",
+      hourlyForecast: [
+        {
+          time: "2026-07-18T09:00",
+          temperature: 71,
+          precipitationProbability: 15,
+          weatherDescription: "mainly clear",
+          icon: "🌤️",
+        },
+      ],
+      dailyForecast: [
+        {
+          date: "2026-07-18",
+          high: 82,
+          low: 64,
+          sunrise: "2026-07-18T05:32",
+          sunset: "2026-07-18T20:24",
+          precipitationProbability: 25,
+          weatherDescription: "partly cloudy",
+          icon: "⛅",
+        },
+      ],
     });
   });
 

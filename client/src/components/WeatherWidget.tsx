@@ -7,6 +7,22 @@ const timeFormatter = new Intl.DateTimeFormat("en-US", {
   hour: "numeric",
   minute: "2-digit",
 });
+const dayFormatter = new Intl.DateTimeFormat("en-US", { weekday: "short" });
+
+function formatForecastTime(value: string): string {
+  const [, time = ""] = value.split("T");
+  const [hour = "0", minute = "0"] = time.split(":");
+  return timeFormatter.format(new Date(2000, 0, 1, Number(hour), Number(minute)));
+}
+
+function formatForecastDay(value: string, index: number): string {
+  if (index === 0) {
+    return "Today";
+  }
+
+  const [year, month, day] = value.split("-").map(Number);
+  return dayFormatter.format(new Date(year, month - 1, day, 12));
+}
 
 function getStoredCity(): string {
   try {
@@ -166,6 +182,56 @@ function WeatherWidget() {
               <dd>{weather.humidity}%</dd>
             </div>
           </dl>
+
+          {weather.hourlyForecast?.length ? (
+            <section className="forecast-section" aria-labelledby="hourly-forecast-title">
+              <div className="forecast-heading">
+                <h3 id="hourly-forecast-title">Next 24 hours</h3>
+                <span>Local time</span>
+              </div>
+              <div className="hourly-forecast" tabIndex={0}>
+                {weather.hourlyForecast.map((hour) => (
+                  <article className="hourly-forecast-card" key={hour.time}>
+                    <time dateTime={hour.time}>{formatForecastTime(hour.time)}</time>
+                    <span role="img" aria-label={hour.weatherDescription}>{hour.icon}</span>
+                    <strong>{hour.temperature}&deg;</strong>
+                    <small aria-label={`${hour.precipitationProbability}% chance of precipitation`}>
+                      💧 {hour.precipitationProbability}%
+                    </small>
+                  </article>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
+          {weather.dailyForecast?.length ? (
+            <section className="forecast-section" aria-labelledby="daily-forecast-title">
+              <div className="forecast-heading">
+                <h3 id="daily-forecast-title">7-day forecast</h3>
+              </div>
+              <div className="daily-forecast">
+                {weather.dailyForecast.map((day, index) => (
+                  <article className="daily-forecast-row" key={day.date}>
+                    <time dateTime={day.date}>{formatForecastDay(day.date, index)}</time>
+                    <span className="daily-condition" role="img" aria-label={day.weatherDescription}>
+                      {day.icon}
+                    </span>
+                    <span className="daily-temperatures">
+                      <strong>{day.high}&deg;</strong>
+                      <span>{day.low}&deg;</span>
+                    </span>
+                    <span className="daily-precipitation" aria-label={`${day.precipitationProbability}% chance of precipitation`}>
+                      💧 {day.precipitationProbability}%
+                    </span>
+                    <span className="sun-times">
+                      <span title="Sunrise">↑ {formatForecastTime(day.sunrise)}</span>
+                      <span title="Sunset">↓ {formatForecastTime(day.sunset)}</span>
+                    </span>
+                  </article>
+                ))}
+              </div>
+            </section>
+          ) : null}
 
           <div className="widget-footer">
             <p>{updatedAt ? `Updated ${timeFormatter.format(updatedAt)}` : null}</p>
